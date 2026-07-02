@@ -189,7 +189,14 @@ try {
         <?php include 'includes/header.php'; ?>
 
         <main class="container-fluid p-4">
-            
+
+            <!-- AÇÃO: Botão para abrir tela de criação de publicação -->
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <div class="mb-4 d-flex justify-content-end">
+                    <a href="nova_publicacao.php" class="btn btn-fya btn-lg">Adicionar publicação</a>
+                </div>
+            <?php endif; ?>
+
             <!-- SEÇÃO: Publicações Recentes -->
             <section class="mb-5">
                 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -202,8 +209,16 @@ try {
                         <?php foreach ($publicacoesFeed as $post): ?>
                             <div class="col-12 col-md-6 col-xl-3">
                                 <div class="card featured-card h-100">
-                                    <?php if (!empty($post['imagem'])): ?>
-                                        <img src="../uploads/<?php echo htmlspecialchars($post['imagem']); ?>" class="card-img-top" style="height: 200px; object-fit: cover;" alt="<?php echo htmlspecialchars($post['titulo'] ?: 'Publicação'); ?>">
+                                    <?php
+                                        $uploadDir = __DIR__ . '/../uploads/';
+                                        if (!empty($post['imagem']) && file_exists($uploadDir . $post['imagem'])):
+                                            $postImgSrc = '../uploads/' . htmlspecialchars($post['imagem']);
+                                        else:
+                                            $postImgSrc = '';
+                                        endif;
+                                    ?>
+                                    <?php if (!empty($postImgSrc)): ?>
+                                        <img src="<?php echo $postImgSrc; ?>" class="card-img-top" style="height: 200px; object-fit: cover;" alt="<?php echo htmlspecialchars($post['titulo'] ?: 'Publicação'); ?>">
                                     <?php else: ?>
                                         <div class="athlete-img-container bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="height: 200px;">
                                             <i class="bi bi-image fs-1 text-muted"></i>
@@ -213,7 +228,13 @@ try {
                                         <h5 class="card-title fw-bold mb-2"><?php echo htmlspecialchars($post['titulo'] ?: 'Sem título'); ?></h5>
                                         <p class="card-text text-muted small mb-3"><?php echo nl2br(htmlspecialchars(mb_strimwidth($post['descricao'] ?: 'Publicação sem descrição.', 0, 100, '...'))); ?></p>
                                         <div class="d-flex align-items-center gap-2 mb-3">
-                                            <img src="<?php echo !empty($post['foto_perfil']) ? '../uploads/'.htmlspecialchars($post['foto_perfil']) : 'https://ui-avatars.com/api/?name='.urlencode($post['autor']).'&background=9ACD32&color=fff'; ?>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" alt="Autor">
+                                            <?php
+                                                $authorImg = '';
+                                                if (!empty($post['foto_perfil']) && file_exists(__DIR__ . '/../uploads/' . $post['foto_perfil'])) {
+                                                    $authorImg = '../uploads/' . htmlspecialchars($post['foto_perfil']);
+                                                }
+                                            ?>
+                                            <img src="<?php echo $authorImg ?: 'https://ui-avatars.com/api/?name='.urlencode($post['autor']).'&background=9ACD32&color=fff'; ?>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" alt="Autor">
                                             <div>
                                                 <small class="d-block fw-semibold"><?php echo htmlspecialchars($post['autor']); ?></small>
                                                 <small class="text-muted"><?php echo date('d/m/Y H:i', strtotime($post['data_criacao'])); ?></small>

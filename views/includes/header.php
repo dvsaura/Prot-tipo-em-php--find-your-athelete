@@ -5,7 +5,7 @@
  * Descrição: Barra superior com notificações, alternador de tema e perfil.
  */
 ?>
-<header class="navbar navbar-expand-lg sticky-top bg-body-tertiary border-bottom px-3 shadow-sm">
+<header class="navbar navbar-expand-lg sticky-top bg-body-tertiary border-bottom px-3 shadow-sm" style="height:70px;">
     <div class="container-fluid">
         <!-- Espaçador para alinhar com o sidebar retrátil -->
         <div class="ms-auto d-flex align-items-center gap-3">

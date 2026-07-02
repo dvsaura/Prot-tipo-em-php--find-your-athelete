@@ -9,7 +9,7 @@
 <style>
     :root {
         --fya-primary: #9ACD32;
-        --sidebar-width: 220px;
+        --sidebar-width: 260px;
         --sidebar-collapsed-width: 64px;
         --transition-speed: 0.3s;
     }
@@ -24,7 +24,7 @@
         position: fixed;
         left: 0;
         top: 0;
-        padding-top: 60px; /* Compensar altura do header */
+        padding-top: 70px; /* Compensar altura do header (70px) */
     }
 
     #sidebar.collapsed {
