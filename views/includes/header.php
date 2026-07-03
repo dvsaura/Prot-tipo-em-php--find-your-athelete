@@ -17,10 +17,17 @@ if ($userIdHeader > 0) {
     $notifCount = count($recentNotifications);
 }
 ?>
-<header class="navbar navbar-expand-lg sticky-top bg-body-tertiary border-bottom px-3 shadow-sm" style="height:70px; z-index: 1040; position: sticky; top: 0;">
-    <div class="container-fluid">
-        <!-- Espaçador para alinhar com o sidebar retrátil -->
-        <div class="ms-auto d-flex align-items-center gap-3">
+<header class="navbar navbar-expand-lg bg-body-tertiary border-bottom px-3 shadow-sm" style="height:70px; z-index: 1040; position: fixed; top: 0; left: 0; width: 100vw;">
+    <div class="container-fluid d-flex align-items-center justify-content-between gap-3">
+        <a href="feed.php" class="d-flex align-items-center text-decoration-none text-body fw-semibold">
+            <img src="https://cdn-icons-png.flaticon.com/512/857/857451.png" alt="Logo" style="width: 34px; height: 34px; object-fit: cover;" class="me-2">
+            <div class="d-none d-md-block">
+                <div>FIND YOUR ATHLETE</div>
+                <small class="text-muted">Find Your Athlete</small>
+            </div>
+        </a>
+
+        <div class="d-flex align-items-center gap-3 ms-auto">
             
             <a href="buscar_atletas.php" class="btn btn-sm btn-outline-secondary d-none d-lg-inline-flex align-items-center">
                 <i class="bi bi-stars me-1"></i> Explorar

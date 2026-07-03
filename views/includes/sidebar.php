@@ -19,15 +19,15 @@
 
     #sidebar {
         width: var(--sidebar-width);
-        min-height: 100vh;
+        min-height: calc(100vh - 70px);
         transition: width var(--transition-speed) ease;
         background-color: var(--bs-tertiary-bg);
         border-right: 1px solid var(--bs-border-color);
         z-index: 1000;
         position: fixed;
         left: 0;
-        top: 0;
-        padding-top: 0.75rem;
+        top: 70px;
+        padding-top: 0;
     }
 
     #sidebar.collapsed {
@@ -35,21 +35,19 @@
     }
 
     .sidebar-brand {
-        padding: 1rem;
+        padding: 0.75rem 1rem;
         display: flex;
         align-items: center;
-        overflow: hidden;
-        white-space: nowrap;
+        justify-content: center;
         text-decoration: none;
         color: inherit;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
     .sidebar-brand img {
         width: 32px;
         height: 32px;
         min-width: 32px;
-        margin-right: 12px;
     }
 
     .nav-link-fya {
@@ -104,6 +102,7 @@
 
     #main-content {
         margin-left: var(--sidebar-width);
+        margin-top: 70px;
         transition: margin-left var(--transition-speed) ease;
     }
 
@@ -144,12 +143,6 @@
 </style>
 
 <nav id="sidebar">
-    <!-- Logo -->
-    <a href="feed.php" class="sidebar-brand">
-        <img src="https://cdn-icons-png.flaticon.com/512/857/857451.png" alt="Logo">
-        <span class="brand-text fw-bold fs-5 text-uppercase">Find Your Athlete <small class="d-block fs-6 fw-normal text-muted">Find Your Athlete</small></span>
-    </a>
-
     <!-- Links de Navegação -->
     <div class="nav flex-column">
         <a href="feed.php" class="nav-link-fya <?php echo $currentPage === 'feed.php' ? 'active' : ''; ?>">
