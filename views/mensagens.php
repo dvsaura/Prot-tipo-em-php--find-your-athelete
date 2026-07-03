@@ -92,7 +92,7 @@ if ($selectedContactId > 0) {
         #main-content {
             padding-top: 70px;
             min-height: calc(100vh - 70px);
-        }
+        }   
 
         /* Layout de Duas Colunas */
         .chat-container {
@@ -351,5 +351,20 @@ if ($selectedContactId > 0) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        async function atualizarDados() {
+
+        try{
+            const resposta = await fetch('../controllers/messages_controller.php?action=fetch&contact_id=<?php echo $selectedContactId; ?>');
+            const dados = await resposta.json();
+
+            document.getElementById('Mensagens').innerHTML = dados.conversationHTML;
+            document.getElementById('chatMessages').scrollLeft = document.getElementById('chatMessages').scrollWidth;
+        }catch(error){
+            console.error('Erro ao atualizar dados: ',error);
+        }
+        }
+    </script>
 </body>
 </html>

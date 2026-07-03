@@ -26,8 +26,8 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtContact->execute([$contactId, $userId]);
 
             if ($stmtContact->fetch()) {
-                $stmt = $pdo->prepare('INSERT INTO mensagens (id_remetente, id_destinatario, mensagem) VALUES (?, ?, ?)');
-                $stmt->execute([$userId, $contactId, $mensagem]);
+                $stmt = $pdo->prepare('INSERT INTO mensagens (id_remetente, id_destinatario, mensagem, data_envio) VALUES (?, ?, ?, ?)');
+                $stmt->execute([$userId, $contactId, $mensagem , date('Y-m-d H:i:s')]);
             }
         } catch (PDOException $e) {
             // Erro não fatal para o envio de mensagem.

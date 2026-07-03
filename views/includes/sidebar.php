@@ -162,12 +162,10 @@
         <a href="mensagens.php" class="nav-link-fya position-relative <?php echo $currentPage === 'mensagens.php' ? 'active' : ''; ?>">
             <i class="bi bi-chat-dots"></i>
             <span class="sidebar-text">Mensagens</span>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger sidebar-text" style="font-size: 0.6rem;">5</span>
         </a>
         <a href="notificacoes.php" class="nav-link-fya position-relative <?php echo $currentPage === 'notificacoes.php' ? 'active' : ''; ?>">
             <i class="bi bi-bell"></i>
             <span class="sidebar-text">Notificações</span>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger sidebar-text" style="font-size: 0.6rem;">3</span>
         </a>
         <a href="perfil_atleta.php" class="nav-link-fya <?php echo $currentPage === 'perfil_atleta.php' ? 'active' : ''; ?>">
             <i class="bi bi-person-badge"></i>

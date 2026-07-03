@@ -195,7 +195,7 @@ if (!isset($_SESSION['user_id'])) {
             <!-- Grid de Resultados -->
             <section>
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <p class="text-muted mb-0">Encontramos <strong>12 atletas</strong> correspondentes.</p>
+                    <p class="text-muted mb-0">Atletas <strong>Cadastrados</strong>! </p>
                     <select class="form-select form-select-sm w-auto">
                         <option>Mais Recentes</option>
                         <option>Melhor Avaliados</option>
@@ -203,91 +203,7 @@ if (!isset($_SESSION['user_id'])) {
                     </select>
                 </div>
 
-                <div class="row g-4">
-                    <!-- Atleta Mock 1 -->
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card athlete-card">
-                            <div class="athlete-img-container">
-                                <img src="https://images.unsplash.com/photo-1508098682722-e99c4372d7a6?q=80&w=500" alt="Atleta">
-                            </div>
-                            <div class="athlete-info">
-                                <div class="athlete-name">Ricardo Oliveira</div>
-                                <div class="text-muted small mb-2">Centroavante • 17 anos</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="metric-badge">VEL 85</span>
-                                    <span class="metric-badge">TEC 90</span>
-                                    <span class="metric-badge">FIS 82</span>
-                                </div>
-                            </div>
-                            <div class="card-actions d-flex justify-content-around p-3 border-top">
-                                <a href="#" class="btn-action text-muted"><i class="bi bi-heart"></i></a>
-                                <a href="perfil_atleta.php" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Atleta Mock 2 -->
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card athlete-card">
-                            <div class="athlete-img-container">
-                                <img src="https://images.unsplash.com/photo-1543351611-58f695a9737d?q=80&w=500" alt="Atleta">
-                            </div>
-                            <div class="athlete-info">
-                                <div class="athlete-name">Felipe Santos</div>
-                                <div class="text-muted small mb-2">Volante • 16 anos</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="metric-badge">VEL 78</span>
-                                    <span class="metric-badge">TEC 88</span>
-                                    <span class="metric-badge">VIS 92</span>
-                                </div>
-                            </div>
-                            <div class="card-actions d-flex justify-content-around p-3 border-top">
-                                <a href="#" class="btn-action text-muted"><i class="bi bi-heart"></i></a>
-                                <a href="perfil_atleta.php" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Atleta Mock 3 -->
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card athlete-card">
-                            <div class="athlete-img-container">
-                                <img src="https://images.unsplash.com/photo-1552667466-765757bc977a?q=80&w=500" alt="Atleta">
-                            </div>
-                            <div class="athlete-info">
-                                <div class="athlete-name">Bruno Mendes</div>
-                                <div class="text-muted small mb-2">Lateral Dir • 17 anos</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="metric-badge">VEL 95</span>
-                                    <span class="metric-badge">TEC 80</span>
-                                    <span class="metric-badge">FIS 88</span>
-                                </div>
-                            </div>
-                            <div class="card-actions d-flex justify-content-around p-3 border-top">
-                                <a href="#" class="btn-action text-muted"><i class="bi bi-heart"></i></a>
-                                <a href="perfil_atleta.php" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Atleta Mock 4 -->
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card athlete-card">
-                            <div class="athlete-img-container">
-                                <img src="https://images.unsplash.com/photo-1574629810360-7ef95f699943?q=80&w=500" alt="Atleta">
-                            </div>
-                            <div class="athlete-info">
-                                <div class="athlete-name">Tiago Rocha</div>
-                                <div class="text-muted small mb-2">Meia • 18 anos</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="metric-badge">VEL 82</span>
-                                    <span class="metric-badge">TEC 94</span>
-                                    <span class="metric-badge">VIS 91</span>
-                                </div>
-                            </div>
-                            <div class="card-actions d-flex justify-content-around p-3 border-top">
-                                <a href="#" class="btn-action text-muted"><i class="bi bi-heart"></i></a>
-                                <a href="perfil_atleta.php" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
-                            </div>
-                        </div>
-                    </div>
+                
                 </div>
             </section>
 

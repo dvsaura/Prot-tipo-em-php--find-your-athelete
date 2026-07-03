@@ -97,9 +97,7 @@ if (!isset($_SESSION['user_id'])) {
                 <div>
                     <h3 class="fw-bold m-0">Central de Notificações <span class="text-muted fs-6 fw-normal">/ Fique por dentro de tudo</span></h3>
                 </div>
-                <button class="btn btn-sm btn-outline-secondary" id="markAllRead">
-                    <i class="bi bi-check2-all me-2"></i> Marcar todas como lidas
-                </button>
+                
             </div>
 
             <div class="row justify-content-center">
@@ -108,7 +106,7 @@ if (!isset($_SESSION['user_id'])) {
                     <!-- Categoria: Mensagens -->
                     <h6 class="text-muted fw-bold text-uppercase small mb-3"><i class="bi bi-chat-dots me-2"></i> Mensagens</h6>
                     <div class="notif-list mb-5">
-                        <a href="mensagens.php" class="notif-item unread">
+                        <a href="  " class="notif-item unread">
                             <div class="notif-dot"></div>
                             <div class="flex-grow-1">
                                 <span class="category-badge bg-msg">Mensagem</span>
@@ -117,7 +115,7 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <i class="bi bi-chevron-right text-muted"></i>
                         </a>
-                        <a href="mensagens.php" class="notif-item">
+                        <a href="" class="notif-item">
                             <div class="notif-dot" style="background-color: transparent;"></div>
                             <div class="flex-grow-1">
                                 <span class="category-badge bg-msg">Mensagem</span>

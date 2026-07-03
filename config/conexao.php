@@ -5,6 +5,8 @@
  * Descrição: Gerencia a conexão com o banco de dados MySQL utilizando PDO.
  */
 
+
+
 // Configurações do Banco de Dados
 $host = 'tini.click';
 $db   = 'findmyathlete_db';

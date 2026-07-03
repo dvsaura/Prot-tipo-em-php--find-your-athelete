@@ -216,7 +216,7 @@ $foto = !empty($perfil['foto_perfil']) ? '../uploads/' . $perfil['foto_perfil'] 
                 <div class="col-lg-4">
                     <div class="section-card text-center text-lg-start">
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h4 class="fw-bold m-0"><?php echo htmlspecialchars($perfil['nome']); ?></h4>
+                            <h4 class="fw-bold m-0"></h4>
                             <a href="editar_perfil.php" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
                         </div>
                         

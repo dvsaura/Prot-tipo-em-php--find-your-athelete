@@ -216,10 +216,6 @@
                                     <option value="avaliador">Avaliador / Clube</option>
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Foto de Perfil (opcional)</label>
-                                <input type="file" name="foto_perfil" class="form-control" accept="image/*">
-                            </div>
                             <div class="mb-4">
                                 <label class="form-label">Senha</label>
                                 <input type="password" name="senha" class="form-control" placeholder="Crie uma senha forte" required>
