@@ -33,7 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $idade = $_POST['idade'] ?? 0;
     $peso = $_POST['peso'] ?? 0;
     $altura = $_POST['altura'] ?? 0;
+    $modalidade = $_POST['modalidade'] ?? '';
+    $cidade = $_POST['cidade'] ?? '';
+    $estado = $_POST['estado'] ?? '';
+    $pais = $_POST['pais'] ?? '';
     $bio = $_POST['bio'] ?? '';
+    $historico = $_POST['historico_campeonatos'] ?? '';
     $youtube = $_POST['youtube_link'] ?? '';
     $tiktok = $_POST['tiktok_link'] ?? '';
     $instagram = $_POST['instagram_link'] ?? '';
@@ -66,12 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Atualização de todos os dados incluindo Atributos
         $stmt = $pdo->prepare(" 
             UPDATE atletas_perfil 
-            SET posicao = ?, idade = ?, peso = ?, altura = ?, bio = ?, 
+            SET posicao = ?, idade = ?, peso = ?, altura = ?, modalidade = ?, cidade = ?, estado = ?, pais = ?, bio = ?, historico_campeonatos = ?, 
                 youtube_link = ?, tiktok_link = ?, instagram_link = ?, curriculo_link = ?,
                 velocidade = ?, tecnica = ?, fisico = ?, visao_jogo = ?
             WHERE id_usuario = ?
         ");
-        $stmt->execute([$posicao, $idade, $peso, $altura, $bio, $youtube, $tiktok, $instagram, $curriculo, $vel, $tec, $fis, $vis, $userId]);
+        $stmt->execute([$posicao, $idade, $peso, $altura, $modalidade, $cidade, $estado, $pais, $bio, $historico, $youtube, $tiktok, $instagram, $curriculo, $vel, $tec, $fis, $vis, $userId]);
 
         $stmt = $pdo->prepare("SELECT * FROM atletas_perfil WHERE id_usuario = ?");
         $stmt->execute([$userId]);
@@ -153,9 +158,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <input type="number" step="0.01" name="altura" class="form-control" value="<?php echo $perfil['altura'] ?? ''; ?>">
                                 </div>
 
+                                <div class="col-md-4">
+                                    <label class="form-label">Modalidade</label>
+                                    <select name="modalidade" class="form-select">
+                                        <option value="">Escolha a modalidade</option>
+                                        <option value="Futebol" <?php echo ($perfil['modalidade'] ?? '') === 'Futebol' ? 'selected' : ''; ?>>Futebol</option>
+                                        <option value="Basquete" <?php echo ($perfil['modalidade'] ?? '') === 'Basquete' ? 'selected' : ''; ?>>Basquete</option>
+                                        <option value="Vôlei" <?php echo ($perfil['modalidade'] ?? '') === 'Vôlei' ? 'selected' : ''; ?>>Vôlei</option>
+                                        <option value="Handebol" <?php echo ($perfil['modalidade'] ?? '') === 'Handebol' ? 'selected' : ''; ?>>Handebol</option>
+                                        <option value="Natação" <?php echo ($perfil['modalidade'] ?? '') === 'Natação' ? 'selected' : ''; ?>>Natação</option>
+                                        <option value="Atletismo" <?php echo ($perfil['modalidade'] ?? '') === 'Atletismo' ? 'selected' : ''; ?>>Atletismo</option>
+                                        <option value="Outros" <?php echo ($perfil['modalidade'] ?? '') === 'Outros' ? 'selected' : ''; ?>>Outros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Cidade</label>
+                                    <input type="text" name="cidade" class="form-control" value="<?php echo htmlspecialchars($perfil['cidade'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estado</label>
+                                    <input type="text" name="estado" class="form-control" value="<?php echo htmlspecialchars($perfil['estado'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">País</label>
+                                    <input type="text" name="pais" class="form-control" value="<?php echo htmlspecialchars($perfil['pais'] ?? ''); ?>">
+                                </div>
+
                                 <div class="col-12">
                                     <label class="form-label">Sua Bio (Sobre você)</label>
                                     <textarea name="bio" class="form-control" rows="3"><?php echo htmlspecialchars($perfil['bio'] ?? ''); ?></textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Histórico de Campeonatos</label>
+                                    <textarea name="historico_campeonatos" class="form-control" rows="3"><?php echo htmlspecialchars($perfil['historico_campeonatos'] ?? ''); ?></textarea>
                                 </div>
 
                                 <div class="col-12 mt-4">

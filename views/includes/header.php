@@ -38,10 +38,13 @@
                 <a href="perfil_atleta.php" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <?php
                         $userAvatar = $_SESSION['user_avatar'] ?? '';
-                        $userName = $_SESSION['user_nome'] ?? 'Usuario+FYA';
-                        $avatarSrc = !empty($userAvatar)
-                            ? '../uploads/' . $userAvatar
-                            : 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=9ACD32&color=fff';
+                        $userName = $_SESSION['user_nome'] ?? 'Usuario FYA';
+                        $avatarSrc = '';
+                        if (!empty($userAvatar) && file_exists(__DIR__ . '/../../uploads/' . $userAvatar)) {
+                            $avatarSrc = '../uploads/' . $userAvatar;
+                        } else {
+                            $avatarSrc = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=9ACD32&color=fff';
+                        }
                     ?>
                     <img src="<?php echo htmlspecialchars($avatarSrc); ?>" 
                          alt="Avatar" class="rounded-circle border" style="width: 35px; height: 35px; object-fit: cover;">

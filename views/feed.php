@@ -15,9 +15,7 @@ if (!isset($_SESSION['user_id'])) {
 
 try {
     $stmtFeed = $pdo->prepare(
-        "SELECT p.*, u.nome AS autor, u.id AS autor_id, a.foto_perfil " .
-        "FROM publicacoes p " .
-        "JOIN usuarios u ON u.id = p.id_usuario " .
+        "SELECT p.*, u.nome AS autor, u.id AS autor_id, a.foto_perfil, a.modalidade, a.cidade, a.estado, a.pais " .
         "LEFT JOIN atletas_perfil a ON a.id_usuario = u.id " .
         "ORDER BY p.data_criacao DESC LIMIT 8"
     );
@@ -240,9 +238,40 @@ try {
                                                 <small class="text-muted"><?php echo date('d/m/Y H:i', strtotime($post['data_criacao'])); ?></small>
                                             </div>
                                         </div>
+                                        <div class="d-flex flex-wrap gap-2 mb-3 small text-muted">
+                                            <?php if (!empty($post['modalidade'])): ?>
+                                                <span class="badge bg-success bg-opacity-10 text-success"><?php echo htmlspecialchars($post['modalidade']); ?></span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($post['cidade']) || !empty($post['estado']) || !empty($post['pais'])): ?>
+                                                <span><?php echo htmlspecialchars(trim(($post['cidade'] ?: '') . ($post['cidade'] && $post['estado'] ? ', ' : '') . ($post['estado'] ?: '') . ($post['pais'] ? ' - ' : '') . ($post['pais'] ?: ''))); ?></span>
+                                            <?php endif; ?>
+                                        </div>
                                         <div class="card-actions justify-content-between">
-                                            <a href="mensagens.php?contact=<?php echo intval($post['autor_id']); ?>" class="btn-action"><i class="bi bi-chat-left-text"></i> Conversar</a>
-                                            <a href="#" class="btn-action"><i class="bi bi-heart"></i> Curtir</a>
+                                            <div>
+                                                <a href="mensagens.php?contact=<?php echo intval($post['autor_id']); ?>" class="btn-action"><i class="bi bi-chat-left-text"></i> Conversar</a>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <?php
+                                                    try {
+                                                        $likesCount = 0;
+                                                        $likedByUser = false;
+                                                        $stmtLikes = $pdo->prepare('SELECT COUNT(*) FROM likes WHERE id_publicacao = ?');
+                                                        $stmtLikes->execute([$post['id']]);
+                                                        $likesCount = (int)$stmtLikes->fetchColumn();
+
+                                                        $stmtLiked = $pdo->prepare('SELECT COUNT(*) FROM likes WHERE id_publicacao = ? AND id_usuario = ?');
+                                                        $stmtLiked->execute([$post['id'], $_SESSION['user_id']]);
+                                                        $likedByUser = $stmtLiked->fetchColumn() > 0;
+                                                    } catch (PDOException $e) {
+                                                        $likesCount = 0;
+                                                        $likedByUser = false;
+                                                    }
+                                                ?>
+                                                <a href="../controllers/post_controller.php?action=like&id=<?php echo intval($post['id']); ?>" class="btn-action" title="Curtir">
+                                                    <i class="bi <?php echo $likedByUser ? 'bi-heart-fill text-danger' : 'bi-heart'; ?>"></i>
+                                                </a>
+                                                <small class="text-muted"><?php echo $likesCount; ?></small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

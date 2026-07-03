@@ -9,10 +9,13 @@
 <style>
     :root {
         --fya-primary: #9ACD32;
-        --sidebar-width: 260px;
+        --sidebar-width: 280px;
         --sidebar-collapsed-width: 64px;
         --transition-speed: 0.3s;
     }
+
+    /* Reset global para evitar espaços em branco inesperados no topo */
+    html, body { margin: 0; padding: 0; }
 
     #sidebar {
         width: var(--sidebar-width);

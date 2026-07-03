@@ -40,6 +40,11 @@ CREATE TABLE IF NOT EXISTS atletas_perfil (
     tiktok_link VARCHAR(255),
     instagram_link VARCHAR(255),
     curriculo_link VARCHAR(255),
+    modalidade VARCHAR(100),
+    cidade VARCHAR(100),
+    estado VARCHAR(100),
+    pais VARCHAR(100),
+    historico_campeonatos TEXT,
     foto_perfil VARCHAR(255),
     nota_media DECIMAL(3,1) DEFAULT 0.0,
     -- Atributos Técnicos (0 a 100)

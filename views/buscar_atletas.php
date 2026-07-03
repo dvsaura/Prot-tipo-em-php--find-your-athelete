@@ -14,17 +14,22 @@ if (!isset($_SESSION['user_id'])) {
 // Parâmetros de busca
 $q = trim($_GET['q'] ?? '');
 $posicaoFilter = $_GET['posicao'] ?? '';
+$modalidadeFilter = $_GET['modalidade'] ?? '';
 $generoFilter = $_GET['genero'] ?? '';
 $faixaFilter = $_GET['faixa'] ?? '';
 $sort = $_GET['sort'] ?? 'recent';
 
 // Monta a query dinamicamente
-$sql = "SELECT u.id, u.nome, a.posicao, a.idade, a.velocidade, a.tecnica, a.fisico, a.visao_jogo, a.foto_perfil, u.data_criacao " .
+$sql = "SELECT u.id, u.nome, a.posicao, a.modalidade, a.idade, a.velocidade, a.tecnica, a.fisico, a.visao_jogo, a.foto_perfil, u.data_criacao " .
        "FROM usuarios u LEFT JOIN atletas_perfil a ON a.id_usuario = u.id WHERE u.tipo_conta = 'atleta'";
 $params = [];
 
 if ($q !== '') {
-    $sql .= " AND (u.nome LIKE ? OR a.posicao LIKE ?)";
+    $sql .= " AND (u.nome LIKE ? OR a.posicao LIKE ? OR a.modalidade LIKE ? OR a.cidade LIKE ? OR a.estado LIKE ? OR a.pais LIKE ?)";
+    $params[] = "%$q%";
+    $params[] = "%$q%";
+    $params[] = "%$q%";
+    $params[] = "%$q%";
     $params[] = "%$q%";
     $params[] = "%$q%";
 }
@@ -32,6 +37,11 @@ if ($q !== '') {
 if (!empty($posicaoFilter) && $posicaoFilter !== 'all') {
     $sql .= " AND a.posicao = ?";
     $params[] = $posicaoFilter;
+}
+
+if (!empty($modalidadeFilter) && $modalidadeFilter !== 'all') {
+    $sql .= " AND a.modalidade = ?";
+    $params[] = $modalidadeFilter;
 }
 
 if (!empty($faixaFilter) && strpos($faixaFilter, '-') !== false) {
@@ -206,6 +216,15 @@ try {
                                     <option value="Zagueiro" <?php echo ($posicaoFilter==='Zagueiro')? 'selected':''; ?>>Zagueiro</option>
                                     <option value="Goleiro" <?php echo ($posicaoFilter==='Goleiro')? 'selected':''; ?>>Goleiro</option>
                                 </select>
+                                <select name="modalidade" class="form-select form-select-sm w-auto me-2">
+                                    <option value="all">Todas modalidades</option>
+                                    <option value="Futebol" <?php echo ($modalidadeFilter==='Futebol')? 'selected':''; ?>>Futebol</option>
+                                    <option value="Basquete" <?php echo ($modalidadeFilter==='Basquete')? 'selected':''; ?>>Basquete</option>
+                                    <option value="Vôlei" <?php echo ($modalidadeFilter==='Vôlei')? 'selected':''; ?>>Vôlei</option>
+                                    <option value="Handebol" <?php echo ($modalidadeFilter==='Handebol')? 'selected':''; ?>>Handebol</option>
+                                    <option value="Natação" <?php echo ($modalidadeFilter==='Natação')? 'selected':''; ?>>Natação</option>
+                                    <option value="Atletismo" <?php echo ($modalidadeFilter==='Atletismo')? 'selected':''; ?>>Atletismo</option>
+                                </select>
                                 <select name="faixa" class="form-select form-select-sm w-auto me-2">
                                     <option value="">Faixa Etária</option>
                                     <option value="14-16" <?php echo ($faixaFilter==='14-16')? 'selected':''; ?>>14-16 anos</option>
@@ -221,7 +240,7 @@ try {
             <!-- Grid de Resultados -->
             <section>
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <p class="text-muted mb-0">Encontramos <strong>12 atletas</strong> correspondentes.</p>
+                    <p class="text-muted mb-0">Encontramos <strong><?php echo count($results); ?></strong> atletas correspondentes.</p>
                     <select class="form-select form-select-sm w-auto">
                         <option>Mais Recentes</option>
                         <option>Melhor Avaliados</option>
