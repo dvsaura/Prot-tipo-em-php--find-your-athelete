@@ -23,17 +23,29 @@ if (!$stmtInit->fetch()) {
     $stmtCreate->execute([$userId]);
 }
 
+$stmtUser = $pdo->prepare('SELECT nome, email FROM usuarios WHERE id = ?');
+$stmtUser->execute([$userId]);
+$userData = $stmtUser->fetch();
+
 $stmt = $pdo->prepare("SELECT * FROM atletas_perfil WHERE id_usuario = ?");
 $stmt->execute([$userId]);
 $perfil = $stmt->fetch();
 
 // --- PROCESSAMENTO DO FORMULÁRIO ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nomeExibicao = trim($_POST['nome_exibicao'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $senha = trim($_POST['senha'] ?? '');
     $posicao = $_POST['posicao'] ?? '';
     $idade = $_POST['idade'] ?? 0;
     $peso = $_POST['peso'] ?? 0;
     $altura = $_POST['altura'] ?? 0;
+    $modalidade = $_POST['modalidade'] ?? '';
+    $cidade = $_POST['cidade'] ?? '';
+    $estado = $_POST['estado'] ?? '';
+    $pais = $_POST['pais'] ?? '';
     $bio = $_POST['bio'] ?? '';
+    $historico = $_POST['historico_campeonatos'] ?? '';
     $youtube = $_POST['youtube_link'] ?? '';
     $tiktok = $_POST['tiktok_link'] ?? '';
     $instagram = $_POST['instagram_link'] ?? '';
@@ -46,9 +58,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $vis = $_POST['visao_jogo'] ?? 0;
 
     try {
+        if ($nomeExibicao === '' || $email === '') {
+            throw new Exception('Nome e e-mail são obrigatórios.');
+        }
+
+        $stmtCheckEmail = $pdo->prepare('SELECT id FROM usuarios WHERE email = ? AND id != ?');
+        $stmtCheckEmail->execute([$email, $userId]);
+        if ($stmtCheckEmail->fetch()) {
+            throw new Exception('Este e-mail já está em uso por outro usuário.');
+        }
+
+        $userUpdateSql = 'UPDATE usuarios SET nome = ?, email = ?';
+        $userParams = [$nomeExibicao, $email];
+        if ($senha !== '') {
+            $userUpdateSql .= ', senha = ?';
+            $userParams[] = password_hash($senha, PASSWORD_BCRYPT);
+        }
+        $userUpdateSql .= ' WHERE id = ?';
+        $userParams[] = $userId;
+        $stmtUserUpdate = $pdo->prepare($userUpdateSql);
+        $stmtUserUpdate->execute($userParams);
+
+        $_SESSION['user_nome'] = $nomeExibicao;
+        $_SESSION['user_email'] = $email;
+
         // 1. Upload de Foto de Perfil
         if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '../uploads/';
+            $uploadDir = fya_upload_dir();
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
             $ext = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));
@@ -66,20 +102,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Atualização de todos os dados incluindo Atributos
         $stmt = $pdo->prepare(" 
             UPDATE atletas_perfil 
-            SET posicao = ?, idade = ?, peso = ?, altura = ?, bio = ?, 
+            SET posicao = ?, idade = ?, peso = ?, altura = ?, modalidade = ?, cidade = ?, estado = ?, pais = ?, bio = ?, historico_campeonatos = ?, 
                 youtube_link = ?, tiktok_link = ?, instagram_link = ?, curriculo_link = ?,
                 velocidade = ?, tecnica = ?, fisico = ?, visao_jogo = ?
             WHERE id_usuario = ?
         ");
-        $stmt->execute([$posicao, $idade, $peso, $altura, $bio, $youtube, $tiktok, $instagram, $curriculo, $vel, $tec, $fis, $vis, $userId]);
+        $stmt->execute([$posicao, $idade, $peso, $altura, $modalidade, $cidade, $estado, $pais, $bio, $historico, $youtube, $tiktok, $instagram, $curriculo, $vel, $tec, $fis, $vis, $userId]);
 
         $stmt = $pdo->prepare("SELECT * FROM atletas_perfil WHERE id_usuario = ?");
         $stmt->execute([$userId]);
         $perfil = $stmt->fetch();
 
-        $message = "<div class='alert alert-success'>Perfil e atributos atualizados com sucesso!</div>";
+        $stmtUser = $pdo->prepare('SELECT nome, email FROM usuarios WHERE id = ?');
+        $stmtUser->execute([$userId]);
+        $userData = $stmtUser->fetch();
+
+        $message = "<div class='alert alert-success'>Perfil e dados da conta atualizados com sucesso!</div>";
     } catch (PDOException $e) {
         $message = "<div class='alert alert-danger'>Erro ao salvar: " . $e->getMessage() . "</div>";
+    } catch (Exception $e) {
+        $message = "<div class='alert alert-warning'>" . htmlspecialchars($e->getMessage()) . "</div>";
     }
 }
 ?>
@@ -128,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <form action="" method="POST" enctype="multipart/form-data">
                             <div class="text-center mb-4">
-                                <img src="<?php echo !empty($perfil['foto_perfil']) ? '../uploads/'.$perfil['foto_perfil'] : 'https://i.pravatar.cc/300?u='.$userId; ?>" class="avatar-preview" id="preview">
+                                <img src="<?php echo !empty($perfil['foto_perfil']) ? '../uploads/'.$perfil['foto_perfil'] : 'https://ui-avatars.com/api/?name='.urlencode($userData['nome'] ?? 'Usuário').'&background=9ACD32&color=fff'; ?>" class="avatar-preview" id="preview">
                                 <div class="mb-3">
                                     <label class="form-label d-block">Mudar Foto de Perfil</label>
                                     <input type="file" name="foto_perfil" class="form-control w-50 mx-auto" accept="image/*" onchange="previewImage(this)">
@@ -153,9 +195,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <input type="number" step="0.01" name="altura" class="form-control" value="<?php echo $perfil['altura'] ?? ''; ?>">
                                 </div>
 
+                                <div class="col-md-4">
+                                    <label class="form-label">Modalidade</label>
+                                    <select name="modalidade" class="form-select">
+                                        <option value="">Escolha a modalidade</option>
+                                        <option value="Futebol" <?php echo ($perfil['modalidade'] ?? '') === 'Futebol' ? 'selected' : ''; ?>>Futebol</option>
+                                        <option value="Basquete" <?php echo ($perfil['modalidade'] ?? '') === 'Basquete' ? 'selected' : ''; ?>>Basquete</option>
+                                        <option value="Vôlei" <?php echo ($perfil['modalidade'] ?? '') === 'Vôlei' ? 'selected' : ''; ?>>Vôlei</option>
+                                        <option value="Handebol" <?php echo ($perfil['modalidade'] ?? '') === 'Handebol' ? 'selected' : ''; ?>>Handebol</option>
+                                        <option value="Natação" <?php echo ($perfil['modalidade'] ?? '') === 'Natação' ? 'selected' : ''; ?>>Natação</option>
+                                        <option value="Atletismo" <?php echo ($perfil['modalidade'] ?? '') === 'Atletismo' ? 'selected' : ''; ?>>Atletismo</option>
+                                        <option value="Outros" <?php echo ($perfil['modalidade'] ?? '') === 'Outros' ? 'selected' : ''; ?>>Outros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Cidade</label>
+                                    <input type="text" name="cidade" class="form-control" value="<?php echo htmlspecialchars($perfil['cidade'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estado</label>
+                                    <input type="text" name="estado" class="form-control" value="<?php echo htmlspecialchars($perfil['estado'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">País</label>
+                                    <input type="text" name="pais" class="form-control" value="<?php echo htmlspecialchars($perfil['pais'] ?? ''); ?>">
+                                </div>
+
                                 <div class="col-12">
                                     <label class="form-label">Sua Bio (Sobre você)</label>
                                     <textarea name="bio" class="form-control" rows="3"><?php echo htmlspecialchars($perfil['bio'] ?? ''); ?></textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Histórico de Campeonatos</label>
+                                    <textarea name="historico_campeonatos" class="form-control" rows="3"><?php echo htmlspecialchars($perfil['historico_campeonatos'] ?? ''); ?></textarea>
                                 </div>
 
                                 <div class="col-12 mt-4">
@@ -180,143 +253,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">Instagram</label>
-                                    <input type="url" name="instagram_link" class="form-control" value="<?php echo htmlspecialchars($perfil['instagram_link'] ?? ''); ?>">
+                                    <label class="form-label">E-mail</label>
+                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userData['email'] ?? ''); ?>" placeholder="seu@email.com" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">TikTok</label>
-                                    <input type="url" name="tiktok_link" class="form-control" value="<?php echo htmlspecialchars($perfil['tiktok_link'] ?? ''); ?>">
+                                    <label class="form-label">Nova senha</label>
+                                    <input type="password" name="senha" class="form-control" placeholder="Deixe em branco para manter a atual">
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">YouTube</label>
-                                    <input type="url" name="youtube_link" class="form-control" value="<?php echo htmlspecialchars($perfil['youtube_link'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Currículo (PDF)</label>
-                                    <input type="url" name="curriculo_link" class="form-control" value="<?php echo htmlspecialchars($perfil['curriculo_link'] ?? ''); ?>">
-                                </div>
-                            </div>
-
-                            <div class="text-center mt-5">
-                                <button type="submit" class="btn btn-fya btn-lg px-5 py-3">Salvar Perfil Completo</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row justify-content-center mt-4">
-                <div class="col-lg-8">
-                    <div class="edit-card">
-                        <h4 class="fw-bold mb-4">Nova Publicação</h4>
-                        <form action="../controllers/post_controller.php?action=create" method="POST" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label class="form-label">Título</label>
-                                <input type="text" name="titulo_publicacao" class="form-control" placeholder="Título da publicação">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Descrição</label>
-                                <textarea name="descricao_publicacao" class="form-control" rows="3" placeholder="Escreva o conteúdo da publicação"></textarea>
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label">Imagem (opcional)</label>
-                                <input type="file" name="imagem_publicacao" class="form-control" accept="image/*">
-                            </div>
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-fya px-4 py-2">Publicar Agora</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) { document.getElementById('preview').src = e.target.result; }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
-    <div id="main-content">
-        <?php include 'includes/header.php'; ?>
-
-        <main class="container p-4">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <a href="perfil_atleta.php" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
-                        <h3 class="fw-bold m-0">Configurações do Perfil</h3>
-                    </div>
-
-                    <?php echo $message; ?>
-
-                    <div class="edit-card">
-                        <?php if (!empty($_GET['msg'])): ?>
-                            <div class="alert alert-info"><?php echo htmlspecialchars($_GET['msg']); ?></div>
-                        <?php endif; ?>
-
-                        <form action="" method="POST" enctype="multipart/form-data">
-                            <div class="text-center mb-4">
-                                <img src="<?php echo !empty($perfil['foto_perfil']) ? '../uploads/'.$perfil['foto_perfil'] : 'https://i.pravatar.cc/300?u='.$userId; ?>" class="avatar-preview" id="preview">
-                                <div class="mb-3">
-                                    <label class="form-label d-block">Mudar Foto de Perfil</label>
-                                    <input type="file" name="foto_perfil" class="form-control w-50 mx-auto" accept="image/*" onchange="previewImage(this)">
-                                </div>
-                            </div>
-
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Posição</label>
-                                    <input type="text" name="posicao" class="form-control" value="<?php echo htmlspecialchars($perfil['posicao'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Idade</label>
-                                    <input type="number" name="idade" class="form-control" value="<?php echo $perfil['idade'] ?? ''; ?>">
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Peso (kg)</label>
-                                    <input type="number" step="0.1" name="peso" class="form-control" value="<?php echo $perfil['peso'] ?? ''; ?>">
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Altura (m)</label>
-                                    <input type="number" step="0.01" name="altura" class="form-control" value="<?php echo $perfil['altura'] ?? ''; ?>">
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Sua Bio (Sobre você)</label>
-                                    <textarea name="bio" class="form-control" rows="3"><?php echo htmlspecialchars($perfil['bio'] ?? ''); ?></textarea>
-                                </div>
-
-                                <!-- ATRIBUTOS TÉCNICOS (Agora Editáveis) -->
-                                <div class="col-12 mt-4">
-                                    <h5 class="fw-bold mb-3">Nível Técnico (0 a 100)</h5>
-                                    
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between"><label>Velocidade</label> <span id="val_vel"><?php echo $perfil['velocidade']; ?>%</span></div>
-                                        <input type="range" name="velocidade" class="form-range attr-slider" min="0" max="100" value="<?php echo $perfil['velocidade']; ?>" oninput="document.getElementById('val_vel').innerText = this.value + '%'">
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between"><label>Técnica</label> <span id="val_tec"><?php echo $perfil['tecnica']; ?>%</span></div>
-                                        <input type="range" name="tecnica" class="form-range attr-slider" min="0" max="100" value="<?php echo $perfil['tecnica']; ?>" oninput="document.getElementById('val_tec').innerText = this.value + '%'">
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between"><label>Físico</label> <span id="val_fis"><?php echo $perfil['fisico']; ?>%</span></div>
-                                        <input type="range" name="fisico" class="form-range attr-slider" min="0" max="100" value="<?php echo $perfil['fisico']; ?>" oninput="document.getElementById('val_fis').innerText = this.value + '%'">
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between"><label>Visão de Jogo</label> <span id="val_vis"><?php echo $perfil['visao_jogo']; ?>%</span></div>
-                                        <input type="range" name="visao_jogo" class="form-range attr-slider" min="0" max="100" value="<?php echo $perfil['visao_jogo']; ?>" oninput="document.getElementById('val_vis').innerText = this.value + '%'">
-                                    </div>
-                                </div>
-
                                 <div class="col-md-6">
                                     <label class="form-label">Instagram</label>
                                     <input type="url" name="instagram_link" class="form-control" value="<?php echo htmlspecialchars($perfil['instagram_link'] ?? ''); ?>">

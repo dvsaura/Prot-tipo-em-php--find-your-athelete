@@ -5,9 +5,64 @@
  * Descrição: Mecanismo de busca e filtragem de atletas.
  */
 session_start();
+require_once '../config/conexao.php';
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
+}
+
+// Parâmetros de busca
+$q = trim($_GET['q'] ?? '');
+$posicaoFilter = $_GET['posicao'] ?? '';
+$modalidadeFilter = $_GET['modalidade'] ?? '';
+$generoFilter = $_GET['genero'] ?? '';
+$faixaFilter = $_GET['faixa'] ?? '';
+$sort = $_GET['sort'] ?? 'recent';
+
+// Monta a query dinamicamente
+$sql = "SELECT u.id, u.nome, a.posicao, a.modalidade, a.idade, a.velocidade, a.tecnica, a.fisico, a.visao_jogo, a.foto_perfil, u.data_criacao " .
+       "FROM usuarios u LEFT JOIN atletas_perfil a ON a.id_usuario = u.id WHERE u.tipo_conta = 'atleta' AND u.id != ?";
+$params = [(int)$_SESSION['user_id']];
+
+if ($q !== '') {
+    $sql .= " AND (u.nome LIKE ? OR a.posicao LIKE ? OR a.modalidade LIKE ? OR a.cidade LIKE ? OR a.estado LIKE ? OR a.pais LIKE ?)";
+    $params[] = "%$q%";
+    $params[] = "%$q%";
+    $params[] = "%$q%";
+    $params[] = "%$q%";
+    $params[] = "%$q%";
+    $params[] = "%$q%";
+}
+
+if (!empty($posicaoFilter) && $posicaoFilter !== 'all') {
+    $sql .= " AND a.posicao = ?";
+    $params[] = $posicaoFilter;
+}
+
+if (!empty($modalidadeFilter) && $modalidadeFilter !== 'all') {
+    $sql .= " AND a.modalidade = ?";
+    $params[] = $modalidadeFilter;
+}
+
+if (!empty($faixaFilter) && strpos($faixaFilter, '-') !== false) {
+    [$minAge, $maxAge] = explode('-', $faixaFilter);
+    $sql .= " AND a.idade BETWEEN ? AND ?";
+    $params[] = intval($minAge);
+    $params[] = intval($maxAge);
+}
+
+if ($sort === 'melhores') {
+    $sql .= " ORDER BY (COALESCE(a.velocidade,0) + COALESCE(a.tecnica,0)) DESC";
+} else {
+    $sql .= " ORDER BY u.data_criacao DESC";
+}
+
+try {
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $results = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $results = [];
 }
 ?>
 <!DOCTYPE html>
@@ -140,154 +195,113 @@ if (!isset($_SESSION['user_id'])) {
             
             <h3 class="fw-bold mb-4">Busca Inteligente <span class="text-muted fs-6 fw-normal">/ Filtre os melhores talentos</span></h3>
 
+            <div class="alert alert-success border-0 mb-4" style="background: linear-gradient(135deg, rgba(154,205,50,0.18), rgba(255,255,255,0.04));">
+                <div class="fw-semibold">Descubra talentos com mais contexto</div>
+                <div class="small text-muted">Use os filtros por posição, modalidade e faixa etária para encontrar atletas com o perfil ideal.</div>
+            </div>
+
             <!-- Área de Busca e Filtros -->
             <section class="search-container">
-                <div class="row g-3">
-                    <div class="col-lg-6 col-md-12">
-                        <div class="search-input-group d-flex align-items-center">
-                            <i class="bi bi-search me-2 text-muted"></i>
-                            <input type="text" class="form-control" placeholder="Pesquisar por nome, posição ou cidade...">
-                            <button class="btn btn-fya rounded-circle p-2 px-3 ms-2" style="background-color: var(--fya-primary); color: #000;">Buscar</button>
+                <form method="GET" action="buscar_atletas.php">
+                    <div class="row g-3">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="search-input-group d-flex align-items-center">
+                                <i class="bi bi-search me-2 text-muted"></i>
+                                <input type="text" name="q" value="<?php echo htmlspecialchars($q); ?>" class="form-control" placeholder="Pesquisar por nome, posição ou cidade...">
+                                <button type="submit" class="btn btn-fya rounded-circle p-2 px-3 ms-2" style="background-color: var(--fya-primary); color: #000;">Buscar</button>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 d-flex align-items-center justify-content-lg-end">
+                            <div class="filter-pills d-flex flex-wrap">
+                                <span class="text-muted me-2 small fw-bold align-self-center">Filtros:</span>
+                                <select name="posicao" class="form-select form-select-sm w-auto me-2">
+                                    <option value="all">Todas posições</option>
+                                    <option value="Atacante" <?php echo ($posicaoFilter==='Atacante')? 'selected':''; ?>>Atacante</option>
+                                    <option value="Meio-Campo" <?php echo ($posicaoFilter==='Meio-Campo')? 'selected':''; ?>>Meio-Campo</option>
+                                    <option value="Zagueiro" <?php echo ($posicaoFilter==='Zagueiro')? 'selected':''; ?>>Zagueiro</option>
+                                    <option value="Goleiro" <?php echo ($posicaoFilter==='Goleiro')? 'selected':''; ?>>Goleiro</option>
+                                </select>
+                                <select name="modalidade" class="form-select form-select-sm w-auto me-2">
+                                    <option value="all">Todas modalidades</option>
+                                    <option value="Futebol" <?php echo ($modalidadeFilter==='Futebol')? 'selected':''; ?>>Futebol</option>
+                                    <option value="Basquete" <?php echo ($modalidadeFilter==='Basquete')? 'selected':''; ?>>Basquete</option>
+                                    <option value="Vôlei" <?php echo ($modalidadeFilter==='Vôlei')? 'selected':''; ?>>Vôlei</option>
+                                    <option value="Handebol" <?php echo ($modalidadeFilter==='Handebol')? 'selected':''; ?>>Handebol</option>
+                                    <option value="Natação" <?php echo ($modalidadeFilter==='Natação')? 'selected':''; ?>>Natação</option>
+                                    <option value="Atletismo" <?php echo ($modalidadeFilter==='Atletismo')? 'selected':''; ?>>Atletismo</option>
+                                </select>
+                                <select name="faixa" class="form-select form-select-sm w-auto me-2">
+                                    <option value="">Faixa Etária</option>
+                                    <option value="14-16" <?php echo ($faixaFilter==='14-16')? 'selected':''; ?>>14-16 anos</option>
+                                    <option value="17-19" <?php echo ($faixaFilter==='17-19')? 'selected':''; ?>>17-19 anos</option>
+                                    <option value="20-99" <?php echo ($faixaFilter==='20-99')? 'selected':''; ?>>20+ anos</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg-6 col-md-12 d-flex align-items-center justify-content-lg-end">
-                        <div class="filter-pills d-flex flex-wrap">
-                            <span class="text-muted me-2 small fw-bold align-self-center">Filtros:</span>
-                            <button class="btn btn-pill active">Futebol</button>
-                            <button class="btn btn-pill">Basquete</button>
-                            <button class="btn btn-pill">Vôlei</button>
-                            <button class="btn btn-pill">Handebol</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mt-3 g-2">
-                    <div class="col-md-3">
-                        <select class="form-select form-select-sm border-0 bg-body">
-                            <option selected>Posição (Todas)</option>
-                            <option>Atacante</option>
-                            <option>Meio-Campo</option>
-                            <option>Zagueiro</option>
-                            <option>Goleiro</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select form-select-sm border-0 bg-body">
-                            <option selected>Gênero (Todos)</option>
-                            <option>Masculino</option>
-                            <option>Feminino</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select form-select-sm border-0 bg-body">
-                            <option selected>Faixa Etária</option>
-                            <option>14-16 anos</option>
-                            <option>17-19 anos</option>
-                            <option>20+ anos</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 text-end">
-                        <button class="btn btn-sm btn-link text-muted text-decoration-none"><i class="bi bi-arrow-clockwise"></i> Limpar Filtros</button>
-                    </div>
-                </div>
+                </form>
             </section>
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a href="buscar_atletas.php" class="btn btn-sm btn-outline-secondary">Todos</a>
+                <a href="buscar_atletas.php?modalidade=Futebol" class="btn btn-sm btn-outline-secondary">Futebol</a>
+                <a href="buscar_atletas.php?modalidade=Basquete" class="btn btn-sm btn-outline-secondary">Basquete</a>
+                <a href="buscar_atletas.php?modalidade=Vôlei" class="btn btn-sm btn-outline-secondary">Vôlei</a>
+                <a href="buscar_atletas.php?modalidade=Natação" class="btn btn-sm btn-outline-secondary">Natação</a>
+                <a href="buscar_atletas.php?sort=melhores" class="btn btn-sm btn-outline-secondary">Melhores avaliados</a>
+            </div>
 
             <!-- Grid de Resultados -->
             <section>
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <p class="text-muted mb-0">Encontramos <strong>12 atletas</strong> correspondentes.</p>
-                    <select class="form-select form-select-sm w-auto">
-                        <option>Mais Recentes</option>
-                        <option>Melhor Avaliados</option>
-                        <option>Mais Jovens</option>
+                    <p class="text-muted mb-0">Encontramos <strong><?php echo count($results); ?></strong> atletas correspondentes.</p>
+                    <select name="sort" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                        <option value="recent" <?php echo $sort === 'recent' ? 'selected' : ''; ?>>Mais Recentes</option>
+                        <option value="melhores" <?php echo $sort === 'melhores' ? 'selected' : ''; ?>>Melhor Avaliados</option>
                     </select>
                 </div>
 
                 <div class="row g-4">
-                    <!-- Atleta Mock 1 -->
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card athlete-card">
-                            <div class="athlete-img-container">
-                                <img src="https://images.unsplash.com/photo-1508098682722-e99c4372d7a6?q=80&w=500" alt="Atleta">
-                            </div>
-                            <div class="athlete-info">
-                                <div class="athlete-name">Ricardo Oliveira</div>
-                                <div class="text-muted small mb-2">Centroavante • 17 anos</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="metric-badge">VEL 85</span>
-                                    <span class="metric-badge">TEC 90</span>
-                                    <span class="metric-badge">FIS 82</span>
+                    <?php if (!empty($results)): ?>
+                        <?php foreach ($results as $athlete): ?>
+                            <div class="col-12 col-sm-6 col-lg-3">
+                                <div class="card athlete-card">
+                                    <div class="athlete-img-container">
+                                        <?php
+                                            $imgPath = __DIR__ . '/../uploads/' . ($athlete['foto_perfil'] ?? '');
+                                            if (!empty($athlete['foto_perfil']) && file_exists($imgPath)) {
+                                                $imgSrc = '../uploads/' . htmlspecialchars($athlete['foto_perfil']);
+                                            } else {
+                                                $imgSrc = 'https://ui-avatars.com/api/?name=' . urlencode($athlete['nome']) . '&background=9ACD32&color=fff';
+                                            }
+                                        ?>
+                                        <img src="<?php echo $imgSrc; ?>" alt="<?php echo htmlspecialchars($athlete['nome']); ?>">
+                                    </div>
+                                    <div class="athlete-info">
+                                        <div class="athlete-name"><?php echo htmlspecialchars($athlete['nome']); ?></div>
+                                        <div class="text-muted small mb-2"><?php echo htmlspecialchars($athlete['posicao'] ?: 'Atleta'); ?> • <?php echo htmlspecialchars($athlete['idade'] ?: '--'); ?> anos</div>
+                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                            <?php $score = intval($athlete['velocidade'] ?? 0) + intval($athlete['tecnica'] ?? 0) + intval($athlete['visao_jogo'] ?? 0); ?>
+                                            <span class="badge bg-success bg-opacity-10 text-success">Score <?php echo $score; ?></span>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <span class="metric-badge">VEL <?php echo intval($athlete['velocidade']); ?></span>
+                                            <span class="metric-badge">TEC <?php echo intval($athlete['tecnica']); ?></span>
+                                            <span class="metric-badge">VIS <?php echo intval($athlete['visao_jogo']); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="card-actions d-flex justify-content-around p-3 border-top">
+                                        <a href="mensagens.php?contact=<?php echo intval($athlete['id']); ?>" class="btn-action text-muted"><i class="bi bi-chat-left-text"></i></a>
+                                        <a href="perfil_atleta.php?id=<?php echo intval($athlete['id']); ?>" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card-actions d-flex justify-content-around p-3 border-top">
-                                <a href="#" class="btn-action text-muted"><i class="bi bi-heart"></i></a>
-                                <a href="perfil_atleta.php" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
-                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="col-12">
+                            <div class="alert alert-info">Nenhum atleta correspondente foi encontrado.</div>
                         </div>
-                    </div>
-                    <!-- Atleta Mock 2 -->
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card athlete-card">
-                            <div class="athlete-img-container">
-                                <img src="https://images.unsplash.com/photo-1543351611-58f695a9737d?q=80&w=500" alt="Atleta">
-                            </div>
-                            <div class="athlete-info">
-                                <div class="athlete-name">Felipe Santos</div>
-                                <div class="text-muted small mb-2">Volante • 16 anos</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="metric-badge">VEL 78</span>
-                                    <span class="metric-badge">TEC 88</span>
-                                    <span class="metric-badge">VIS 92</span>
-                                </div>
-                            </div>
-                            <div class="card-actions d-flex justify-content-around p-3 border-top">
-                                <a href="#" class="btn-action text-muted"><i class="bi bi-heart"></i></a>
-                                <a href="perfil_atleta.php" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Atleta Mock 3 -->
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card athlete-card">
-                            <div class="athlete-img-container">
-                                <img src="https://images.unsplash.com/photo-1552667466-765757bc977a?q=80&w=500" alt="Atleta">
-                            </div>
-                            <div class="athlete-info">
-                                <div class="athlete-name">Bruno Mendes</div>
-                                <div class="text-muted small mb-2">Lateral Dir • 17 anos</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="metric-badge">VEL 95</span>
-                                    <span class="metric-badge">TEC 80</span>
-                                    <span class="metric-badge">FIS 88</span>
-                                </div>
-                            </div>
-                            <div class="card-actions d-flex justify-content-around p-3 border-top">
-                                <a href="#" class="btn-action text-muted"><i class="bi bi-heart"></i></a>
-                                <a href="perfil_atleta.php" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Atleta Mock 4 -->
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card athlete-card">
-                            <div class="athlete-img-container">
-                                <img src="https://images.unsplash.com/photo-1574629810360-7ef95f699943?q=80&w=500" alt="Atleta">
-                            </div>
-                            <div class="athlete-info">
-                                <div class="athlete-name">Tiago Rocha</div>
-                                <div class="text-muted small mb-2">Meia • 18 anos</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="metric-badge">VEL 82</span>
-                                    <span class="metric-badge">TEC 94</span>
-                                    <span class="metric-badge">VIS 91</span>
-                                </div>
-                            </div>
-                            <div class="card-actions d-flex justify-content-around p-3 border-top">
-                                <a href="#" class="btn-action text-muted"><i class="bi bi-heart"></i></a>
-                                <a href="perfil_atleta.php" class="btn-action text-muted"><i class="bi bi-eye"></i> Perfil</a>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </section>
 

@@ -15,7 +15,7 @@ if (!isset($_SESSION['user_id'])) {
 
 try {
     $stmtFeed = $pdo->prepare(
-        "SELECT p.*, u.nome AS autor, u.id AS autor_id, a.foto_perfil " .
+        "SELECT p.*, u.nome AS autor, u.id AS autor_id, a.foto_perfil, a.modalidade, a.cidade, a.estado, a.pais " .
         "FROM publicacoes p " .
         "JOIN usuarios u ON u.id = p.id_usuario " .
         "LEFT JOIN atletas_perfil a ON a.id_usuario = u.id " .
@@ -171,6 +171,12 @@ try {
             color: var(--fya-primary);
         }
 
+        .feed-highlight {
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(154,205,50,0.16), rgba(255,255,255,0.04));
+            border: 1px solid rgba(154,205,50,0.18);
+        }
+
         /* Ajuste do Layout com Sidebar */
         #main-content {
             padding-top: 70px; /* Espaço para o header */
@@ -189,7 +195,68 @@ try {
         <?php include 'includes/header.php'; ?>
 
         <main class="container-fluid p-4">
-            
+
+            <!-- AÇÃO: Botão para abrir tela de criação de publicação -->
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h3 class="fw-bold mb-1">Bem-vindo ao seu feed</h3>
+                        <p class="text-muted mb-0">Mantenha seu perfil ativo e mostre seu trabalho para olheiros e clubes.</p>
+                    </div>
+                    <a href="nova_publicacao.php" class="btn btn-fya btn-lg">Adicionar publicação</a>
+                </div>
+            <?php endif; ?>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, rgba(154,205,50,0.2), rgba(255,255,255,0.04));">
+                        <div class="card-body">
+                            <div class="small text-muted">Publicações</div>
+                            <div class="fw-bold fs-4"><?php echo count($publicacoesFeed); ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="small text-muted">Talentos</div>
+                            <div class="fw-bold fs-4"><?php echo count($atletasFeed); ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="small text-muted">Buscar</div>
+                            <div class="fw-bold fs-4"><a href="buscar_atletas.php" class="text-decoration-none">Explorar</a></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="small text-muted">Mensagens</div>
+                            <div class="fw-bold fs-4"><a href="mensagens.php" class="text-decoration-none">Conversar</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feed-highlight p-3 mb-4">
+                <div class="row g-3 align-items-center">
+                    <div class="col-lg-8">
+                        <div class="fw-bold mb-1">Seu perfil está ganhando força</div>
+                        <div class="small text-muted">Mantenha uma rotina de publicações, atualize links e mostre seu melhor trabalho para clubes e olheiros.</div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <div class="d-flex flex-wrap justify-content-lg-end gap-2">
+                            <a href="editar_perfil.php" class="btn btn-sm btn-fya">Completar perfil</a>
+                            <a href="nova_publicacao.php" class="btn btn-sm btn-outline-secondary">Nova publicação</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- SEÇÃO: Publicações Recentes -->
             <section class="mb-5">
                 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -202,8 +269,16 @@ try {
                         <?php foreach ($publicacoesFeed as $post): ?>
                             <div class="col-12 col-md-6 col-xl-3">
                                 <div class="card featured-card h-100">
-                                    <?php if (!empty($post['imagem'])): ?>
-                                        <img src="../uploads/<?php echo htmlspecialchars($post['imagem']); ?>" class="card-img-top" style="height: 200px; object-fit: cover;" alt="<?php echo htmlspecialchars($post['titulo'] ?: 'Publicação'); ?>">
+                                    <?php
+                                        $uploadDir = __DIR__ . '/../uploads/';
+                                        if (!empty($post['imagem']) && file_exists($uploadDir . $post['imagem'])):
+                                            $postImgSrc = '../uploads/' . htmlspecialchars($post['imagem']);
+                                        else:
+                                            $postImgSrc = '';
+                                        endif;
+                                    ?>
+                                    <?php if (!empty($postImgSrc)): ?>
+                                        <img src="<?php echo $postImgSrc; ?>" class="card-img-top" style="height: 200px; object-fit: cover;" alt="<?php echo htmlspecialchars($post['titulo'] ?: 'Publicação'); ?>">
                                     <?php else: ?>
                                         <div class="athlete-img-container bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="height: 200px;">
                                             <i class="bi bi-image fs-1 text-muted"></i>
@@ -213,15 +288,52 @@ try {
                                         <h5 class="card-title fw-bold mb-2"><?php echo htmlspecialchars($post['titulo'] ?: 'Sem título'); ?></h5>
                                         <p class="card-text text-muted small mb-3"><?php echo nl2br(htmlspecialchars(mb_strimwidth($post['descricao'] ?: 'Publicação sem descrição.', 0, 100, '...'))); ?></p>
                                         <div class="d-flex align-items-center gap-2 mb-3">
-                                            <img src="<?php echo !empty($post['foto_perfil']) ? '../uploads/'.htmlspecialchars($post['foto_perfil']) : 'https://ui-avatars.com/api/?name='.urlencode($post['autor']).'&background=9ACD32&color=fff'; ?>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" alt="Autor">
+                                            <?php
+                                                $authorImg = '';
+                                                if (!empty($post['foto_perfil']) && file_exists(__DIR__ . '/../uploads/' . $post['foto_perfil'])) {
+                                                    $authorImg = '../uploads/' . htmlspecialchars($post['foto_perfil']);
+                                                }
+                                            ?>
+                                            <img src="<?php echo $authorImg ?: 'https://ui-avatars.com/api/?name='.urlencode($post['autor']).'&background=9ACD32&color=fff'; ?>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" alt="Autor">
                                             <div>
                                                 <small class="d-block fw-semibold"><?php echo htmlspecialchars($post['autor']); ?></small>
                                                 <small class="text-muted"><?php echo date('d/m/Y H:i', strtotime($post['data_criacao'])); ?></small>
                                             </div>
                                         </div>
+                                        <div class="d-flex flex-wrap gap-2 mb-3 small text-muted">
+                                            <?php if (!empty($post['modalidade'])): ?>
+                                                <span class="badge bg-success bg-opacity-10 text-success"><?php echo htmlspecialchars($post['modalidade']); ?></span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($post['cidade']) || !empty($post['estado']) || !empty($post['pais'])): ?>
+                                                <span><?php echo htmlspecialchars(trim(($post['cidade'] ?: '') . ($post['cidade'] && $post['estado'] ? ', ' : '') . ($post['estado'] ?: '') . ($post['pais'] ? ' - ' : '') . ($post['pais'] ?: ''))); ?></span>
+                                            <?php endif; ?>
+                                        </div>
                                         <div class="card-actions justify-content-between">
-                                            <a href="mensagens.php?contact=<?php echo intval($post['autor_id']); ?>" class="btn-action"><i class="bi bi-chat-left-text"></i> Conversar</a>
-                                            <a href="#" class="btn-action"><i class="bi bi-heart"></i> Curtir</a>
+                                            <div>
+                                                <a href="mensagens.php?contact=<?php echo intval($post['autor_id']); ?>" class="btn-action"><i class="bi bi-chat-left-text"></i> Conversar</a>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <?php
+                                                    try {
+                                                        $likesCount = 0;
+                                                        $likedByUser = false;
+                                                        $stmtLikes = $pdo->prepare('SELECT COUNT(*) FROM likes WHERE id_publicacao = ?');
+                                                        $stmtLikes->execute([$post['id']]);
+                                                        $likesCount = (int)$stmtLikes->fetchColumn();
+
+                                                        $stmtLiked = $pdo->prepare('SELECT COUNT(*) FROM likes WHERE id_publicacao = ? AND id_usuario = ?');
+                                                        $stmtLiked->execute([$post['id'], $_SESSION['user_id']]);
+                                                        $likedByUser = $stmtLiked->fetchColumn() > 0;
+                                                    } catch (PDOException $e) {
+                                                        $likesCount = 0;
+                                                        $likedByUser = false;
+                                                    }
+                                                ?>
+                                                <a href="../controllers/post_controller.php?action=like&id=<?php echo intval($post['id']); ?>" class="btn-action" title="Curtir">
+                                                    <i class="bi <?php echo $likedByUser ? 'bi-heart-fill text-danger' : 'bi-heart'; ?>"></i>
+                                                </a>
+                                                <small class="text-muted"><?php echo $likesCount; ?></small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

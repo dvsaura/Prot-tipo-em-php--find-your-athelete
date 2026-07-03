@@ -30,7 +30,7 @@ try {
         $imagem = null;
 
         if (!empty($_FILES['imagem_publicacao']) && $_FILES['imagem_publicacao']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '../uploads/';
+            $uploadDir = fya_upload_dir();
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
@@ -72,7 +72,7 @@ try {
         }
 
         if (!empty($post['imagem'])) {
-            $filePath = '../uploads/' . basename($post['imagem']);
+            $filePath = fya_upload_path($post['imagem']);
             if (is_file($filePath)) {
                 @unlink($filePath);
             }
@@ -82,6 +82,40 @@ try {
         $stmtDelete->execute([$postId, $userId]);
 
         redirectWithMessage($redirect, 'Publicação excluída com sucesso.');
+    }
+    
+    if ($action === 'like') {
+        $postId = intval($_GET['id'] ?? 0);
+        if ($postId <= 0) {
+            redirectWithMessage($redirect, 'Publicação inválida.');
+        }
+
+        // Cria tabela de likes se não existir (migratória simples)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS likes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            id_publicacao INT NOT NULL,
+            id_usuario INT NOT NULL,
+            data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (id_publicacao) REFERENCES publicacoes(id) ON DELETE CASCADE,
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB;");
+
+        // Verifica se já existe like do usuário
+        $stmt = $pdo->prepare('SELECT id FROM likes WHERE id_publicacao = ? AND id_usuario = ?');
+        $stmt->execute([$postId, $userId]);
+        $exists = $stmt->fetch();
+
+        if ($exists) {
+            // Remover like
+            $stmtDel = $pdo->prepare('DELETE FROM likes WHERE id = ?');
+            $stmtDel->execute([$exists['id']]);
+            redirectWithMessage($redirect, 'Você não curte mais esta publicação.');
+        } else {
+            // Inserir like
+            $stmtIns = $pdo->prepare('INSERT INTO likes (id_publicacao, id_usuario) VALUES (?, ?)');
+            $stmtIns->execute([$postId, $userId]);
+            redirectWithMessage($redirect, 'Publicação curtida.');
+        }
     }
 } catch (PDOException $e) {
     redirectWithMessage($redirect, 'Erro ao processar a publicação: ' . $e->getMessage());

@@ -5,10 +5,18 @@
  * Descrição: Painel de configurações da conta, FAQ e Institucional.
  */
 session_start();
+require_once '../config/conexao.php';
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
+
+$userId = (int)$_SESSION['user_id'];
+$stmtUser = $pdo->prepare('SELECT nome, email FROM usuarios WHERE id = ?');
+$stmtUser->execute([$userId]);
+$userData = $stmtUser->fetch();
+$userName = $userData['nome'] ?? $_SESSION['user_nome'] ?? 'Usuário';
+$userEmail = $userData['email'] ?? $_SESSION['user_email'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br" data-bs-theme="light">
@@ -80,6 +88,19 @@ if (!isset($_SESSION['user_id'])) {
             
             <h3 class="fw-bold mb-4">Configurações <span class="text-muted fs-6 fw-normal">/ Gerencie sua conta</span></h3>
 
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 18px; background: linear-gradient(135deg, rgba(154,205,50,0.16), rgba(255,255,255,0.03));">
+                <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <div class="fw-bold">Resumo da sua conta</div>
+                        <div class="small text-muted">Acompanhe seu perfil, mantenha as informações atualizadas e continue recebendo mais oportunidades.</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="editar_perfil.php" class="btn btn-sm btn-fya">Editar perfil</a>
+                        <a href="buscar_atletas.php" class="btn btn-sm btn-outline-secondary">Explorar atletas</a>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <!-- Menu de Sub-abas -->
                 <div class="col-lg-3 mb-4">
@@ -99,6 +120,10 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
 
+                <?php if (!empty($_GET['msg'])): ?>
+                    <div class="alert alert-info mt-3"><?php echo htmlspecialchars($_GET['msg']); ?></div>
+                <?php endif; ?>
+
                 <!-- Conteúdo das Abas -->
                 <div class="col-lg-9">
                     <div class="tab-content" id="v-pills-tabContent">
@@ -107,15 +132,20 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="tab-pane fade show active" id="pill-dados" role="tabpanel">
                             <div class="config-card">
                                 <h5 class="fw-bold mb-4">Alterar Informações Cadastrais</h5>
+                                <div class="d-flex justify-content-end mb-3">
+                                    <a href="editar_perfil.php" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-pencil-square me-2"></i> Ir para editar perfil
+                                    </a>
+                                </div>
                                 <form action="../controllers/user_controller.php?action=update" method="POST">
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <label class="form-label">Nome Completo</label>
-                                            <input type="text" name="nome" class="form-control" value="Ricardo Oliveira Silva" required>
+                                            <input type="text" name="nome" class="form-control" value="<?php echo htmlspecialchars($userName); ?>" required>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">E-mail</label>
-                                            <input type="email" name="email" class="form-control" value="ricardo@email.com" required>
+                                            <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userEmail); ?>" required>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Nova Senha</label>

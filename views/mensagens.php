@@ -38,6 +38,7 @@ if ($selectedContactId <= 0 && !empty($contacts)) {
 
 $selectedContact = null;
 $conversation = [];
+$selectedContactOnline = false;
 
 if ($selectedContactId > 0) {
     try {
@@ -46,6 +47,8 @@ if ($selectedContactId > 0) {
         $selectedContact = $stmtContact->fetch();
 
         if ($selectedContact) {
+            $selectedContactOnline = fya_is_user_online($selectedContactId);
+
             $stmtMarkRead = $pdo->prepare(
                 "UPDATE mensagens SET lida = 1 WHERE id_destinatario = ? AND id_remetente = ?"
             );
@@ -221,6 +224,16 @@ if ($selectedContactId > 0) {
             gap: 10px;
         }
 
+        .quick-reply {
+            border-radius: 999px;
+            transition: all 0.2s ease;
+        }
+
+        .quick-reply:hover {
+            background-color: rgba(154,205,50,0.14);
+            border-color: var(--fya-primary);
+        }
+
         .chat-input-area input {
             border-radius: 50px;
             padding-left: 1.2rem;
@@ -266,21 +279,22 @@ if ($selectedContactId > 0) {
                             <div class="p-3">
                                 <div class="input-group">
                                     <span class="input-group-text bg-body border-end-0"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control border-start-0" placeholder="Buscar contato..." disabled>
+                                    <input type="text" id="contactSearch" class="form-control border-start-0" placeholder="Buscar contato...">
                                 </div>
                             </div>
                             
                             <div class="overflow-auto">
                                 <?php if (!empty($contacts)): ?>
                                     <?php foreach ($contacts as $contact): ?>
-                                        <a href="mensagens.php?contact=<?php echo intval($contact['id']); ?>" class="conversation-item <?php echo $contact['id'] === $selectedContactId ? 'active' : ''; ?>">
+                                        <a href="mensagens.php?contact=<?php echo intval($contact['id']); ?>" class="conversation-item <?php echo $contact['id'] === $selectedContactId ? 'active' : ''; ?>" data-contact-name="<?php echo htmlspecialchars($contact['nome']); ?>">
                                             <div class="avatar-container">
                                                 <img src="<?php echo !empty($contact['foto_perfil']) ? '../uploads/'.htmlspecialchars($contact['foto_perfil']) : 'https://ui-avatars.com/api/?name='.urlencode($contact['nome']).'&background=9ACD32&color=fff'; ?>" alt="Avatar">
-                                                <span class="online-indicator"></span>
+                                                <?php $isOnline = fya_is_user_online($contact['id']); ?>
+                                                <?php if ($isOnline): ?><span class="online-indicator"></span><?php endif; ?>
                                             </div>
                                             <div class="conversation-info overflow-hidden">
                                                 <div class="d-flex justify-content-between align-items-center">
-                                                    <span class="fw-bold small"><?php echo htmlspecialchars($contact['nome']); ?></span>
+                                                    <span class="fw-bold small contact-name"><?php echo htmlspecialchars($contact['nome']); ?></span>
                                                     <span class="text-muted" style="font-size: 0.7rem;"><?php echo !empty($contact['ultima_data']) ? date('H:i', strtotime($contact['ultima_data'])) : '---'; ?></span>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center">
@@ -308,7 +322,7 @@ if ($selectedContactId > 0) {
                                         <img src="<?php echo !empty($selectedContact['foto_perfil']) ? '../uploads/'.htmlspecialchars($selectedContact['foto_perfil']) : 'https://ui-avatars.com/api/?name='.urlencode($selectedContact['nome']).'&background=9ACD32&color=fff'; ?>" class="rounded-circle me-3" style="width: 40px; height: 40px;" alt="Avatar">
                                         <div>
                                             <h6 class="fw-bold m-0"><?php echo htmlspecialchars($selectedContact['nome']); ?></h6>
-                                            <small class="text-success">Online agora</small>
+                                            <small class="<?php echo $selectedContactOnline ? 'text-success' : 'text-muted'; ?>"><?php echo $selectedContactOnline ? 'Online agora' : 'Offline'; ?></small>
                                         </div>
                                     </div>
                                     <div class="dropdown">
@@ -333,6 +347,13 @@ if ($selectedContactId > 0) {
                                     <?php endif; ?>
                                 </div>
 
+                                <div class="px-4 pt-3">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary quick-reply">Olá! Gostaria de conversar.</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary quick-reply">Pode me contar mais sobre a oportunidade?</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary quick-reply">Posso te enviar meu currículo.</button>
+                                    </div>
+                                </div>
                                 <form action="../controllers/messages_controller.php?action=send" method="POST" class="chat-input-area">
                                     <input type="hidden" name="contact_id" value="<?php echo intval($selectedContact['id']); ?>">
                                     <input type="text" id="messageInput" name="mensagem" class="form-control" placeholder="Digite sua mensagem..." autocomplete="off">
@@ -351,5 +372,32 @@ if ($selectedContactId > 0) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('contactSearch');
+            const quickReplies = document.querySelectorAll('.quick-reply');
+            const messageInput = document.getElementById('messageInput');
+            const items = Array.from(document.querySelectorAll('.conversation-item'));
+
+            if (input) {
+                input.addEventListener('input', function () {
+                    const term = this.value.trim().toLowerCase();
+                    items.forEach(function (item) {
+                        const name = (item.getAttribute('data-contact-name') || '').toLowerCase();
+                        item.style.display = name.includes(term) ? '' : 'none';
+                    });
+                });
+            }
+
+            quickReplies.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    if (messageInput) {
+                        messageInput.value = this.textContent.trim();
+                        messageInput.focus();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

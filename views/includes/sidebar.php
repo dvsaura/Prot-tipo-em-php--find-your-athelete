@@ -9,10 +9,13 @@
 <style>
     :root {
         --fya-primary: #9ACD32;
-        --sidebar-width: 220px;
+        --sidebar-width: 280px;
         --sidebar-collapsed-width: 64px;
         --transition-speed: 0.3s;
     }
+
+    /* Reset global para evitar espaços em branco inesperados no topo */
+    html, body { margin: 0; padding: 0; }
 
     #sidebar {
         width: var(--sidebar-width);
@@ -24,7 +27,7 @@
         position: fixed;
         left: 0;
         top: 0;
-        padding-top: 60px; /* Compensar altura do header */
+        padding-top: 0.75rem;
     }
 
     #sidebar.collapsed {
@@ -59,6 +62,8 @@
         border-left: 3px solid transparent;
         white-space: nowrap;
         font-weight: 500;
+        border-radius: 12px;
+        margin: 0.2rem 0.5rem;
     }
 
     .nav-link-fya:hover {
