@@ -23,12 +23,19 @@ if (!$stmtInit->fetch()) {
     $stmtCreate->execute([$userId]);
 }
 
+$stmtUser = $pdo->prepare('SELECT nome, email FROM usuarios WHERE id = ?');
+$stmtUser->execute([$userId]);
+$userData = $stmtUser->fetch();
+
 $stmt = $pdo->prepare("SELECT * FROM atletas_perfil WHERE id_usuario = ?");
 $stmt->execute([$userId]);
 $perfil = $stmt->fetch();
 
 // --- PROCESSAMENTO DO FORMULÁRIO ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nomeExibicao = trim($_POST['nome_exibicao'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $senha = trim($_POST['senha'] ?? '');
     $posicao = $_POST['posicao'] ?? '';
     $idade = $_POST['idade'] ?? 0;
     $peso = $_POST['peso'] ?? 0;
@@ -51,9 +58,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $vis = $_POST['visao_jogo'] ?? 0;
 
     try {
+        if ($nomeExibicao === '' || $email === '') {
+            throw new Exception('Nome e e-mail são obrigatórios.');
+        }
+
+        $stmtCheckEmail = $pdo->prepare('SELECT id FROM usuarios WHERE email = ? AND id != ?');
+        $stmtCheckEmail->execute([$email, $userId]);
+        if ($stmtCheckEmail->fetch()) {
+            throw new Exception('Este e-mail já está em uso por outro usuário.');
+        }
+
+        $userUpdateSql = 'UPDATE usuarios SET nome = ?, email = ?';
+        $userParams = [$nomeExibicao, $email];
+        if ($senha !== '') {
+            $userUpdateSql .= ', senha = ?';
+            $userParams[] = password_hash($senha, PASSWORD_BCRYPT);
+        }
+        $userUpdateSql .= ' WHERE id = ?';
+        $userParams[] = $userId;
+        $stmtUserUpdate = $pdo->prepare($userUpdateSql);
+        $stmtUserUpdate->execute($userParams);
+
+        $_SESSION['user_nome'] = $nomeExibicao;
+        $_SESSION['user_email'] = $email;
+
         // 1. Upload de Foto de Perfil
         if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '../uploads/';
+            $uploadDir = fya_upload_dir();
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
             $ext = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));
@@ -82,9 +113,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$userId]);
         $perfil = $stmt->fetch();
 
-        $message = "<div class='alert alert-success'>Perfil e atributos atualizados com sucesso!</div>";
+        $stmtUser = $pdo->prepare('SELECT nome, email FROM usuarios WHERE id = ?');
+        $stmtUser->execute([$userId]);
+        $userData = $stmtUser->fetch();
+
+        $message = "<div class='alert alert-success'>Perfil e dados da conta atualizados com sucesso!</div>";
     } catch (PDOException $e) {
         $message = "<div class='alert alert-danger'>Erro ao salvar: " . $e->getMessage() . "</div>";
+    } catch (Exception $e) {
+        $message = "<div class='alert alert-warning'>" . htmlspecialchars($e->getMessage()) . "</div>";
     }
 }
 ?>
@@ -133,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <form action="" method="POST" enctype="multipart/form-data">
                             <div class="text-center mb-4">
-                                <img src="<?php echo !empty($perfil['foto_perfil']) ? '../uploads/'.$perfil['foto_perfil'] : 'https://i.pravatar.cc/300?u='.$userId; ?>" class="avatar-preview" id="preview">
+                                <img src="<?php echo !empty($perfil['foto_perfil']) ? '../uploads/'.$perfil['foto_perfil'] : 'https://ui-avatars.com/api/?name='.urlencode($userData['nome'] ?? 'Usuário').'&background=9ACD32&color=fff'; ?>" class="avatar-preview" id="preview">
                                 <div class="mb-3">
                                     <label class="form-label d-block">Mudar Foto de Perfil</label>
                                     <input type="file" name="foto_perfil" class="form-control w-50 mx-auto" accept="image/*" onchange="previewImage(this)">
@@ -215,6 +252,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
                                 </div>
 
+                                <div class="col-md-6">
+                                    <label class="form-label">E-mail</label>
+                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userData['email'] ?? ''); ?>" placeholder="seu@email.com" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Nova senha</label>
+                                    <input type="password" name="senha" class="form-control" placeholder="Deixe em branco para manter a atual">
+                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Instagram</label>
                                     <input type="url" name="instagram_link" class="form-control" value="<?php echo htmlspecialchars($perfil['instagram_link'] ?? ''); ?>">

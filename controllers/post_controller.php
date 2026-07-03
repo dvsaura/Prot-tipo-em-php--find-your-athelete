@@ -30,7 +30,7 @@ try {
         $imagem = null;
 
         if (!empty($_FILES['imagem_publicacao']) && $_FILES['imagem_publicacao']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '../uploads/';
+            $uploadDir = fya_upload_dir();
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
@@ -72,7 +72,7 @@ try {
         }
 
         if (!empty($post['imagem'])) {
-            $filePath = '../uploads/' . basename($post['imagem']);
+            $filePath = fya_upload_path($post['imagem']);
             if (is_file($filePath)) {
                 @unlink($filePath);
             }

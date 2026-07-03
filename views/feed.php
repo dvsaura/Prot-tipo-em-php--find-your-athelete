@@ -16,6 +16,8 @@ if (!isset($_SESSION['user_id'])) {
 try {
     $stmtFeed = $pdo->prepare(
         "SELECT p.*, u.nome AS autor, u.id AS autor_id, a.foto_perfil, a.modalidade, a.cidade, a.estado, a.pais " .
+        "FROM publicacoes p " .
+        "JOIN usuarios u ON u.id = p.id_usuario " .
         "LEFT JOIN atletas_perfil a ON a.id_usuario = u.id " .
         "ORDER BY p.data_criacao DESC LIMIT 8"
     );
@@ -169,6 +171,12 @@ try {
             color: var(--fya-primary);
         }
 
+        .feed-highlight {
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(154,205,50,0.16), rgba(255,255,255,0.04));
+            border: 1px solid rgba(154,205,50,0.18);
+        }
+
         /* Ajuste do Layout com Sidebar */
         #main-content {
             padding-top: 70px; /* Espaço para o header */
@@ -190,10 +198,64 @@ try {
 
             <!-- AÇÃO: Botão para abrir tela de criação de publicação -->
             <?php if (isset($_SESSION['user_id'])): ?>
-                <div class="mb-4 d-flex justify-content-end">
+                <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h3 class="fw-bold mb-1">Bem-vindo ao seu feed</h3>
+                        <p class="text-muted mb-0">Mantenha seu perfil ativo e mostre seu trabalho para olheiros e clubes.</p>
+                    </div>
                     <a href="nova_publicacao.php" class="btn btn-fya btn-lg">Adicionar publicação</a>
                 </div>
             <?php endif; ?>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, rgba(154,205,50,0.2), rgba(255,255,255,0.04));">
+                        <div class="card-body">
+                            <div class="small text-muted">Publicações</div>
+                            <div class="fw-bold fs-4"><?php echo count($publicacoesFeed); ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="small text-muted">Talentos</div>
+                            <div class="fw-bold fs-4"><?php echo count($atletasFeed); ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="small text-muted">Buscar</div>
+                            <div class="fw-bold fs-4"><a href="buscar_atletas.php" class="text-decoration-none">Explorar</a></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="small text-muted">Mensagens</div>
+                            <div class="fw-bold fs-4"><a href="mensagens.php" class="text-decoration-none">Conversar</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feed-highlight p-3 mb-4">
+                <div class="row g-3 align-items-center">
+                    <div class="col-lg-8">
+                        <div class="fw-bold mb-1">Seu perfil está ganhando força</div>
+                        <div class="small text-muted">Mantenha uma rotina de publicações, atualize links e mostre seu melhor trabalho para clubes e olheiros.</div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <div class="d-flex flex-wrap justify-content-lg-end gap-2">
+                            <a href="editar_perfil.php" class="btn btn-sm btn-fya">Completar perfil</a>
+                            <a href="nova_publicacao.php" class="btn btn-sm btn-outline-secondary">Nova publicação</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- SEÇÃO: Publicações Recentes -->
             <section class="mb-5">

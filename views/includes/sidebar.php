@@ -27,7 +27,7 @@
         position: fixed;
         left: 0;
         top: 0;
-        padding-top: 70px; /* Compensar altura do header (70px) */
+        padding-top: 0.75rem;
     }
 
     #sidebar.collapsed {
@@ -62,6 +62,8 @@
         border-left: 3px solid transparent;
         white-space: nowrap;
         font-weight: 500;
+        border-radius: 12px;
+        margin: 0.2rem 0.5rem;
     }
 
     .nav-link-fya:hover {

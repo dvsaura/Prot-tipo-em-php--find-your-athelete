@@ -51,7 +51,7 @@ if ($action === 'register') {
             // Upload de Foto de Perfil opcional no cadastro
             $fotoPerfilFile = null;
             if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = '../uploads/';
+                $uploadDir = fya_upload_dir();
                 if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
                 $ext = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));

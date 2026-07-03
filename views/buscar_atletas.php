@@ -21,8 +21,8 @@ $sort = $_GET['sort'] ?? 'recent';
 
 // Monta a query dinamicamente
 $sql = "SELECT u.id, u.nome, a.posicao, a.modalidade, a.idade, a.velocidade, a.tecnica, a.fisico, a.visao_jogo, a.foto_perfil, u.data_criacao " .
-       "FROM usuarios u LEFT JOIN atletas_perfil a ON a.id_usuario = u.id WHERE u.tipo_conta = 'atleta'";
-$params = [];
+       "FROM usuarios u LEFT JOIN atletas_perfil a ON a.id_usuario = u.id WHERE u.tipo_conta = 'atleta' AND u.id != ?";
+$params = [(int)$_SESSION['user_id']];
 
 if ($q !== '') {
     $sql .= " AND (u.nome LIKE ? OR a.posicao LIKE ? OR a.modalidade LIKE ? OR a.cidade LIKE ? OR a.estado LIKE ? OR a.pais LIKE ?)";
@@ -195,6 +195,11 @@ try {
             
             <h3 class="fw-bold mb-4">Busca Inteligente <span class="text-muted fs-6 fw-normal">/ Filtre os melhores talentos</span></h3>
 
+            <div class="alert alert-success border-0 mb-4" style="background: linear-gradient(135deg, rgba(154,205,50,0.18), rgba(255,255,255,0.04));">
+                <div class="fw-semibold">Descubra talentos com mais contexto</div>
+                <div class="small text-muted">Use os filtros por posição, modalidade e faixa etária para encontrar atletas com o perfil ideal.</div>
+            </div>
+
             <!-- Área de Busca e Filtros -->
             <section class="search-container">
                 <form method="GET" action="buscar_atletas.php">
@@ -237,14 +242,22 @@ try {
                 </form>
             </section>
 
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a href="buscar_atletas.php" class="btn btn-sm btn-outline-secondary">Todos</a>
+                <a href="buscar_atletas.php?modalidade=Futebol" class="btn btn-sm btn-outline-secondary">Futebol</a>
+                <a href="buscar_atletas.php?modalidade=Basquete" class="btn btn-sm btn-outline-secondary">Basquete</a>
+                <a href="buscar_atletas.php?modalidade=Vôlei" class="btn btn-sm btn-outline-secondary">Vôlei</a>
+                <a href="buscar_atletas.php?modalidade=Natação" class="btn btn-sm btn-outline-secondary">Natação</a>
+                <a href="buscar_atletas.php?sort=melhores" class="btn btn-sm btn-outline-secondary">Melhores avaliados</a>
+            </div>
+
             <!-- Grid de Resultados -->
             <section>
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <p class="text-muted mb-0">Encontramos <strong><?php echo count($results); ?></strong> atletas correspondentes.</p>
-                    <select class="form-select form-select-sm w-auto">
-                        <option>Mais Recentes</option>
-                        <option>Melhor Avaliados</option>
-                        <option>Mais Jovens</option>
+                    <select name="sort" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                        <option value="recent" <?php echo $sort === 'recent' ? 'selected' : ''; ?>>Mais Recentes</option>
+                        <option value="melhores" <?php echo $sort === 'melhores' ? 'selected' : ''; ?>>Melhor Avaliados</option>
                     </select>
                 </div>
 
@@ -267,6 +280,10 @@ try {
                                     <div class="athlete-info">
                                         <div class="athlete-name"><?php echo htmlspecialchars($athlete['nome']); ?></div>
                                         <div class="text-muted small mb-2"><?php echo htmlspecialchars($athlete['posicao'] ?: 'Atleta'); ?> • <?php echo htmlspecialchars($athlete['idade'] ?: '--'); ?> anos</div>
+                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                            <?php $score = intval($athlete['velocidade'] ?? 0) + intval($athlete['tecnica'] ?? 0) + intval($athlete['visao_jogo'] ?? 0); ?>
+                                            <span class="badge bg-success bg-opacity-10 text-success">Score <?php echo $score; ?></span>
+                                        </div>
                                         <div class="d-flex flex-wrap gap-1">
                                             <span class="metric-badge">VEL <?php echo intval($athlete['velocidade']); ?></span>
                                             <span class="metric-badge">TEC <?php echo intval($athlete['tecnica']); ?></span>

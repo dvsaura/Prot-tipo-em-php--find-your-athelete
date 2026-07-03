@@ -62,6 +62,47 @@ try {
     $publicacoes = [];
 }
 
+try {
+    $stmtLikes = $pdo->prepare(
+        "SELECT COUNT(*) FROM likes l JOIN publicacoes p ON p.id = l.id_publicacao WHERE p.id_usuario = ?"
+    );
+    $stmtLikes->execute([$viewUserId]);
+    $likesRecebidos = (int)$stmtLikes->fetchColumn();
+} catch (PDOException $e) {
+    $likesRecebidos = 0;
+}
+
+try {
+    $stmtMsgs = $pdo->prepare("SELECT COUNT(*) FROM mensagens WHERE id_destinatario = ?");
+    $stmtMsgs->execute([$viewUserId]);
+    $mensagensRecebidas = (int)$stmtMsgs->fetchColumn();
+} catch (PDOException $e) {
+    $mensagensRecebidas = 0;
+}
+
+$camposPreenchidos = 0;
+$camposTotais = 8;
+foreach ([
+    $perfil['foto_perfil'] ?? null,
+    $perfil['posicao'] ?? null,
+    $perfil['modalidade'] ?? null,
+    $perfil['cidade'] ?? null,
+    $perfil['estado'] ?? null,
+    $perfil['bio'] ?? null,
+    $perfil['instagram_link'] ?? null,
+    $perfil['curriculo_link'] ?? null,
+] as $valor) {
+    if (!empty($valor)) {
+        $camposPreenchidos++;
+    }
+}
+$perfilCompletoPercent = (int)round(($camposPreenchidos / $camposTotais) * 100);
+$badges = [];
+if (!empty($publicacoes)) { $badges[] = ['titulo' => 'Ativo', 'texto' => 'Publicou recentemente']; }
+if ($perfilCompletoPercent >= 80) { $badges[] = ['titulo' => 'Perfil completo', 'texto' => 'Seu perfil está bem preenchido']; }
+if (!empty($perfil['instagram_link']) || !empty($perfil['youtube_link']) || !empty($perfil['tiktok_link'])) { $badges[] = ['titulo' => 'Presença digital', 'texto' => 'Redes sociais vinculadas']; }
+if ($likesRecebidos > 0) { $badges[] = ['titulo' => 'Relevância', 'texto' => 'Recebeu curtidas nas publicações']; }
+
 $isOwner = ($viewUserId === $currentUserId);
 
 // foto do perfil (verifica arquivo antes)
@@ -90,6 +131,10 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
         .profile-cover { height:200px; width:100%; background: #ddd center/cover no-repeat; border-radius:0 0 20px 20px; }
         .profile-avatar { width:130px; height:130px; border-radius:50%; border:5px solid var(--bs-body-bg); object-fit:cover; box-shadow:0 4px 10px rgba(0,0,0,.15); }
         .section-card { background-color: var(--bs-tertiary-bg); border:none; border-radius:12px; padding:1.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.04); }
+        .summary-card { border:1px solid rgba(154,205,50,0.2); border-radius:14px; padding:1rem; background: linear-gradient(135deg, rgba(154,205,50,0.14), rgba(255,255,255,0.02)); }
+        .summary-card .value { font-size:1.35rem; font-weight:700; color: var(--fya-primary); }
+        .activity-item { border-left:3px solid var(--fya-primary); padding-left:0.8rem; margin-bottom:0.8rem; }
+        .activity-pill { border-radius:999px; background-color: rgba(154,205,50,0.12); color: var(--fya-primary); padding:0.25rem 0.7rem; font-size:0.75rem; }
         #main-content { padding-top:70px; }
     </style>
 </head>
@@ -161,6 +206,82 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
                 </div>
 
                 <div class="col-lg-8">
+                    <div class="section-card mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="fw-bold mb-0">Progresso do perfil</h5>
+                            <span class="badge bg-success bg-opacity-10 text-success"><?php echo $perfilCompletoPercent; ?>%</span>
+                        </div>
+                        <div class="progress rounded-pill mb-2" style="height: 10px;">
+                            <div class="progress-bar" style="width: <?php echo $perfilCompletoPercent; ?>%; background-color: var(--fya-primary);"></div>
+                        </div>
+                        <div class="small text-muted">Complete links, localização e currículo para aumentar sua visibilidade e atrair mais oportunidades.</div>
+                    </div>
+
+                    <div class="section-card mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="fw-bold mb-0">Resumo rápido</h4>
+                            <span class="badge bg-success bg-opacity-10 text-success">Perfil <?php echo $perfilCompletoPercent; ?>%</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-3 col-sm-6">
+                                <div class="summary-card text-center">
+                                    <div class="value"><?php echo count($publicacoes); ?></div>
+                                    <div class="small text-muted">Publicações</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="summary-card text-center">
+                                    <div class="value"><?php echo $likesRecebidos; ?></div>
+                                    <div class="small text-muted">Curtidas</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="summary-card text-center">
+                                    <div class="value"><?php echo $mensagensRecebidas; ?></div>
+                                    <div class="small text-muted">Mensagens</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="summary-card text-center">
+                                    <div class="value"><?php echo $perfilCompletoPercent; ?>%</div>
+                                    <div class="small text-muted">Completo</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <?php if (!empty($badges)): ?>
+                        <div class="section-card mb-4">
+                            <h5 class="fw-bold mb-3">Conquistas e destaque</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php foreach ($badges as $badge): ?>
+                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2">
+                                        <strong><?php echo htmlspecialchars($badge['titulo']); ?></strong> · <?php echo htmlspecialchars($badge['texto']); ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="section-card mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="fw-bold mb-0">Atividades recentes</h4>
+                            <span class="activity-pill">Atualizado agora</span>
+                        </div>
+                        <div class="activity-item">
+                            <div class="fw-semibold">Perfil em destaque</div>
+                            <div class="text-muted small">Seu perfil está disponível para visualização por clubes e olheiros.</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="fw-semibold">Última publicação</div>
+                            <div class="text-muted small"><?php echo !empty($publicacoes) ? htmlspecialchars($publicacoes[0]['titulo'] ?: 'Publicação recente') : 'Ainda não há publicações'; ?></div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="fw-semibold">Engajamento</div>
+                            <div class="text-muted small">Você recebeu <?php echo $likesRecebidos; ?> curtidas e <?php echo $mensagensRecebidas; ?> mensagens.</div>
+                        </div>
+                    </div>
+
                     <div class="section-card">
                         <h4 class="fw-bold mb-4">Publicações Recentes</h4>
 
