@@ -2,20 +2,8 @@
 /**
  * FYA - Find Your Athlete
  * Arquivo: views/includes/header.php
- * Descrição: Barra superior com notificações, alternador de tema e perfil.
+ * Descrição: Barra superior com alternador de tema e perfil.
  */
-require_once __DIR__ . '/../../config/conexao.php';
-
-$userIdHeader = (int)($_SESSION['user_id'] ?? 0);
-$notifCount = 0;
-$recentNotifications = [];
-
-if ($userIdHeader > 0) {
-    $stmtNotif = $pdo->prepare("SELECT id, titulo, mensagem, categoria FROM notificacoes WHERE id_usuario = ? AND lida = 0 ORDER BY data_criacao DESC LIMIT 3");
-    $stmtNotif->execute([$userIdHeader]);
-    $recentNotifications = $stmtNotif->fetchAll();
-    $notifCount = count($recentNotifications);
-}
 ?>
 <header class="navbar navbar-expand-lg bg-body-tertiary border-bottom px-3 shadow-sm" style="height:70px; z-index: 1040; position: fixed; top: 0; left: 0; width: 100vw;">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3">
@@ -37,30 +25,6 @@ if ($userIdHeader > 0) {
             <button class="btn btn-link nav-link p-0 text-body" id="themeToggle" title="Alternar Tema">
                 <i class="bi bi-moon-stars-fill" id="themeIcon" style="font-size: 1.2rem;"></i>
             </button>
-
-            <!-- Notificações -->
-            <div class="dropdown">
-                <a href="notificacoes.php" class="nav-link position-relative" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-bell" style="font-size: 1.2rem;"></i>
-                    <?php if ($notifCount > 0): ?>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                            <?php echo $notifCount; ?>
-                        </span>
-                    <?php endif; ?>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notifDropdown" style="width: 320px;">
-                    <li class="dropdown-header fw-bold">Notificações</li>
-                    <?php if (!empty($recentNotifications)): ?>
-                        <?php foreach ($recentNotifications as $notification): ?>
-                            <li><a class="dropdown-item py-2" href="notificacoes.php"><i class="bi bi-bell-fill me-2 text-primary"></i> <?php echo htmlspecialchars(mb_strimwidth($notification['titulo'] ?: $notification['mensagem'] ?: 'Nova atividade', 0, 60, '...')); ?></a></li>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <li><span class="dropdown-item py-2 text-muted">Nenhuma notificação nova no momento.</span></li>
-                    <?php endif; ?>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-center small text-muted" href="notificacoes.php">Ver todas as notificações</a></li>
-                </ul>
-            </div>
 
             <!-- Avatar do Usuário -->
             <div class="dropdown">

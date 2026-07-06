@@ -98,9 +98,10 @@ try {
         .search-input-group {
             background-color: var(--bs-body-bg);
             border-radius: 50px;
-            padding: 5px 5px 5px 20px;
+            padding: 5px 10px 5px 16px;
             border: 2px solid transparent;
             transition: border-color var(--transition-speed);
+            max-width: 420px;
         }
 
         .search-input-group:focus-within {
@@ -111,6 +112,17 @@ try {
             border: none;
             background: transparent;
             box-shadow: none;
+            padding-left: 0.35rem;
+        }
+
+        .search-input-group .btn-search {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
         }
 
         /* Chips/Pills de Filtragem */
@@ -206,14 +218,15 @@ try {
                     <div class="row g-3">
                         <div class="col-lg-6 col-md-12">
                             <div class="search-input-group d-flex align-items-center">
-                                <i class="bi bi-search me-2 text-muted"></i>
-                                <input type="text" name="q" value="<?php echo htmlspecialchars($q); ?>" class="form-control" placeholder="Pesquisar por nome, posição ou cidade...">
-                                <button type="submit" class="btn btn-fya rounded-circle p-2 px-3 ms-2" style="background-color: var(--fya-primary); color: #000;">Buscar</button>
+                                <i class="bi bi-search text-muted"></i>
+                                <input type="text" name="q" value="<?php echo htmlspecialchars($q); ?>" class="form-control" placeholder="Pesquisar..." aria-label="Buscar atleta">
+                                <button type="submit" class="btn btn-fya btn-search ms-2" aria-label="Buscar">
+                                    <i class="bi bi-search"></i>
+                                </button>
                             </div>
                         </div>
                         <div class="col-lg-6 col-md-12 d-flex align-items-center justify-content-lg-end">
                             <div class="filter-pills d-flex flex-wrap">
-                                <span class="text-muted me-2 small fw-bold align-self-center">Filtros:</span>
                                 <select name="posicao" class="form-select form-select-sm w-auto me-2">
                                     <option value="all">Todas posições</option>
                                     <option value="Atacante" <?php echo ($posicaoFilter==='Atacante')? 'selected':''; ?>>Atacante</option>

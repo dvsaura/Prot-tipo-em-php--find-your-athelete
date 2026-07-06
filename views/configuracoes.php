@@ -128,37 +128,7 @@ $userEmail = $userData['email'] ?? $_SESSION['user_email'] ?? '';
                 <div class="col-lg-9">
                     <div class="tab-content" id="v-pills-tabContent">
                         
-                        <!-- Aba: Dados da Conta -->
-                        <div class="tab-pane fade show active" id="pill-dados" role="tabpanel">
-                            <div class="config-card">
-                                <h5 class="fw-bold mb-4">Alterar Informações Cadastrais</h5>
-                                <div class="d-flex justify-content-end mb-3">
-                                    <a href="editar_perfil.php" class="btn btn-outline-secondary btn-sm">
-                                        <i class="bi bi-pencil-square me-2"></i> Ir para editar perfil
-                                    </a>
-                                </div>
-                                <form action="../controllers/user_controller.php?action=update" method="POST">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Nome Completo</label>
-                                            <input type="text" name="nome" class="form-control" value="<?php echo htmlspecialchars($userName); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">E-mail</label>
-                                            <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userEmail); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Nova Senha</label>
-                                            <input type="password" name="senha" class="form-control" placeholder="Deixe em branco para não alterar">
-                                        </div>
-                                        <div class="col-md-6 d-flex align-items-end">
-                                            <button type="submit" class="btn btn-fya px-4 py-2 w-100">Salvar Alterações</button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
+                       
                         <!-- Aba: Central de Ajuda -->
                         <div class="tab-pane fade" id="pill-ajuda" role="tabpanel">
                             <div class="config-card">

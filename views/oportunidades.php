@@ -5,12 +5,45 @@
  * Descrição: Gestão de vagas e peneiras com controle de acesso por tipo de conta.
  */
 session_start();
+require_once '../config/conexao.php';
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
 $tipo_conta = $_SESSION['user_tipo'] ?? 'atleta';
+$userId = (int)($_SESSION['user_id'] ?? 0);
+$successMessage = $_GET['msg'] ?? '';
+
+try {
+    $stmtOpps = $pdo->prepare('SELECT * FROM oportunidades ORDER BY data_criacao DESC');
+    $stmtOpps->execute();
+    $oportunidades = $stmtOpps->fetchAll();
+} catch (PDOException $e) {
+    $oportunidades = [];
+}
+
+$manageId = intval($_GET['manage_id'] ?? 0);
+$manageCandidaturas = [];
+$canManageOpportunity = false;
+if ($manageId > 0 && $tipo_conta === 'avaliador') {
+    try {
+        $stmtOwner = $pdo->prepare('SELECT id FROM oportunidades WHERE id = ? AND id_usuario_avaliador = ?');
+        $stmtOwner->execute([$manageId, $userId]);
+        $canManageOpportunity = (bool)$stmtOwner->fetch();
+
+        if ($canManageOpportunity) {
+            $stmtCand = $pdo->prepare(
+                'SELECT c.id, c.status, c.data_candidatura, u.nome, u.email FROM candidaturas c JOIN usuarios u ON u.id = c.id_usuario_atleta WHERE c.id_oportunidade = ? ORDER BY c.data_candidatura DESC'
+            );
+            $stmtCand->execute([$manageId]);
+            $manageCandidaturas = $stmtCand->fetchAll();
+        }
+    } catch (PDOException $e) {
+        $manageCandidaturas = [];
+        $canManageOpportunity = false;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br" data-bs-theme="light">
@@ -38,6 +71,9 @@ $tipo_conta = $_SESSION['user_tipo'] ?? 'atleta';
             transition: transform var(--transition-speed), box-shadow var(--transition-speed);
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             border-left: 5px solid var(--fya-primary);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .opp-card:hover {
@@ -58,6 +94,10 @@ $tipo_conta = $_SESSION['user_tipo'] ?? 'atleta';
             background-color: #8ab52b;
         }
 
+        .opp-card .btn {
+            margin-top: auto;
+        }
+
         #main-content {
             padding-top: 70px;
         }
@@ -72,6 +112,10 @@ $tipo_conta = $_SESSION['user_tipo'] ?? 'atleta';
 
         <main class="container-fluid p-4">
             
+            <?php if ($successMessage): ?>
+                <div class="alert alert-success"><?php echo htmlspecialchars($successMessage); ?></div>
+            <?php endif; ?>
+
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <div>
                     <h3 class="fw-bold m-0">Oportunidades & Vagas <span class="text-muted fs-6 fw-normal">/ Encontre seu lugar no esporte</span></h3>
@@ -79,7 +123,7 @@ $tipo_conta = $_SESSION['user_tipo'] ?? 'atleta';
 
                 <!-- CONTROLE DE ACESSO: Apenas Avaliadores veem o botão de publicar -->
                 <?php if ($tipo_conta === 'avaliador'): ?>
-                    <button class="btn btn-fya px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalPublicar">
+                    <button class="btn btn-fya px-4 py-2 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#modalPublicar">
                         <i class="bi bi-plus-circle me-2"></i> Publicar Oportunidade
                     </button>
                 <?php endif; ?>
@@ -87,77 +131,93 @@ $tipo_conta = $_SESSION['user_tipo'] ?? 'atleta';
 
             <!-- Grid de Oportunidades -->
             <div class="row g-4">
-                <!-- Vaga Mock 1 -->
-                <div class="col-md-6 col-lg-4">
-                    <div class="card opp-card p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge bg-secondary mb-2">Futebol</span>
-                            <span class="text-muted small"><i class="bi bi-calendar3"></i> Prazo: 15 Out</span>
-                        </div>
-                        <h5 class="fw-bold">Peneira Sub-17 - Clube Atlético Mineiro</h5>
-                        <p class="text-muted small mb-3">Busca-se laterais e meias com boa visão de jogo e vigor físico.</p>
-                        
-                        <div class="row g-2 mb-4">
-                            <div class="col-6">
-                                <div class="p-2 bg-body-tertiary rounded text-center">
-                                    <small class="d-block text-muted">Idade</small>
-                                    <strong>16 - 17 anos</strong>
+                <?php if (!empty($oportunidades)): ?>
+                    <?php foreach ($oportunidades as $oportunidade): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card opp-card p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <span class="badge bg-secondary mb-2"><?php echo htmlspecialchars($oportunidade['categoria'] ?: 'Geral'); ?></span>
+                                    <span class="text-muted small"><i class="bi bi-calendar3"></i> Prazo: <?php echo htmlspecialchars($oportunidade['data_limite'] ?: '--'); ?></span>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 bg-body-tertiary rounded text-center">
-                                    <small class="d-block text-muted">Pé Dominante</small>
-                                    <strong>Ambos</strong>
+                                <h5 class="fw-bold"><?php echo htmlspecialchars($oportunidade['titulo']); ?></h5>
+                                <p class="text-muted small mb-3"><?php echo htmlspecialchars($oportunidade['requisitos'] ?: 'Descrição disponível em breve.'); ?></p>
+                                
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="p-2 bg-body-tertiary rounded text-center">
+                                            <small class="d-block text-muted">Idade</small>
+                                            <strong><?php echo htmlspecialchars(($oportunidade['idade_min'] ?: '?') . ' - ' . ($oportunidade['idade_max'] ?: '?')); ?></strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 bg-body-tertiary rounded text-center">
+                                            <small class="d-block text-muted">Pé Dominante</small>
+                                            <strong><?php echo htmlspecialchars(ucfirst($oportunidade['pe_dominante_pref'] ?: 'ambos')); ?></strong>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <?php if ($tipo_conta === 'atleta'): ?>
-                            <button class="btn btn-fya w-100" onclick="alert('Sua candidatura foi enviada com sucesso!')">
-                                <i class="bi bi-send me-2"></i> Candidatar-se Agora
-                            </button>
-                        <?php else: ?>
-                            <button class="btn btn-outline-secondary w-100">Gerenciar Candidaturas</button>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- Vaga Mock 2 -->
-                <div class="col-md-6 col-lg-4">
-                    <div class="card opp-card p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge bg-secondary mb-2">Basquete</span>
-                            <span class="text-muted small"><i class="bi bi-calendar3"></i> Prazo: 20 Out</span>
-                        </div>
-                        <h5 class="fw-bold">Vaga de Base - Academia Esportiva SP</h5>
-                        <p class="text-muted small mb-3">Vaga para pivôs com altura mínima de 1.95m e experiência em campeonatos estaduais.</p>
-                        
-                        <div class="row g-2 mb-4">
-                            <div class="col-6">
-                                <div class="p-2 bg-body-tertiary rounded text-center">
-                                    <small class="d-block text-muted">Idade</small>
-                                    <strong>15 - 18 anos</strong>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 bg-body-tertiary rounded text-center">
-                                    <small class="d-block text-muted">Peso Mín.</small>
-                                    <strong>75 kg</strong>
-                                </div>
+                                <?php if ($tipo_conta === 'atleta'): ?>
+                                    <a class="btn btn-fya w-100 d-flex align-items-center justify-content-center" href="../controllers/opp_controller.php?action=apply&id=<?php echo intval($oportunidade['id']); ?>">
+                                        <i class="bi bi-send me-2"></i> Candidatar-se Agora
+                                    </a>
+                                <?php elseif ((int)$oportunidade['id_usuario_avaliador'] === $userId): ?>
+                                    <a class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center" href="../controllers/opp_controller.php?action=manage&id=<?php echo intval($oportunidade['id']); ?>">Gerenciar Candidaturas</a>
+                                <?php endif; ?>
                             </div>
                         </div>
-
-                        <?php if ($tipo_conta === 'atleta'): ?>
-                            <button class="btn btn-fya w-100" onclick="alert('Sua candidatura foi enviada com sucesso!')">
-                                <i class="bi bi-send me-2"></i> Candidatar-se Agora
-                            </button>
-                        <?php else: ?>
-                            <button class="btn btn-outline-secondary w-100">Gerenciar Candidaturas</button>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-12"><div class="alert alert-info">Nenhuma oportunidade cadastrada ainda.</div></div>
+                <?php endif; ?>
             </div>
 
+            <?php if ($tipo_conta === 'avaliador' && $manageId > 0): ?>
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Candidaturas recebidas</h5>
+                        <?php if (!$canManageOpportunity): ?>
+                            <div class="alert alert-warning mb-0">Você não pode visualizar candidaturas desta oportunidade.</div>
+                        <?php elseif (!empty($manageCandidaturas)): ?>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Atleta</th>
+                                            <th>E-mail</th>
+                                            <th>Status</th>
+                                            <th>Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($manageCandidaturas as $candidatura): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($candidatura['nome']); ?></td>
+                                                <td><?php echo htmlspecialchars($candidatura['email']); ?></td>
+                                                <td><?php echo htmlspecialchars(ucfirst($candidatura['status'])); ?></td>
+                                                <td>
+                                                    <form action="../controllers/opp_controller.php?action=update_status" method="POST" class="d-flex gap-2">
+                                                        <input type="hidden" name="opportunity_id" value="<?php echo intval($manageId); ?>">
+                                                        <input type="hidden" name="candidature_id" value="<?php echo intval($candidatura['id']); ?>">
+                                                        <select name="status" class="form-select form-select-sm w-auto">
+                                                            <option value="pendente" <?php echo $candidatura['status'] === 'pendente' ? 'selected' : ''; ?>>Pendente</option>
+                                                            <option value="aceito" <?php echo $candidatura['status'] === 'aceito' ? 'selected' : ''; ?>>Aceito</option>
+                                                            <option value="recusado" <?php echo $candidatura['status'] === 'recusado' ? 'selected' : ''; ?>>Recusado</option>
+                                                        </select>
+                                                        <button type="submit" class="btn btn-sm btn-fya">Salvar</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-muted">Nenhuma candidatura para esta oportunidade ainda.</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
         </main>
 
         <!-- MODAL: Publicar Oportunidade (Apenas para Avaliadores) -->
@@ -192,17 +252,9 @@ $tipo_conta = $_SESSION['user_tipo'] ?? 'atleta';
                                     <label class="form-label">Idade Máxima</label>
                                     <input type="number" name="idade_max" class="form-control">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <label class="form-label">Peso Mínimo (kg)</label>
                                     <input type="number" step="0.1" name="peso_min" class="form-control">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Pé Dominante</label>
-                                    <select name="pe_dominante" class="form-select">
-                                        <option value="direito">Direito</option>
-                                        <option value="esquerdo">Esquerdo</option>
-                                        <option value="ambos">Ambos</option>
-                                    </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Data Limite de Inscrição</label>
@@ -210,7 +262,7 @@ $tipo_conta = $_SESSION['user_tipo'] ?? 'atleta';
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer border-0">
+                        <div class="modal-footer border-0 justify-content-end gap-2">
                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
                             <button type="submit" class="btn btn-fya px-4">Publicar Agora</button>
                         </div>

@@ -286,11 +286,11 @@ if ($selectedContactId > 0) {
                             <div class="overflow-auto">
                                 <?php if (!empty($contacts)): ?>
                                     <?php foreach ($contacts as $contact): ?>
-                                        <a href="mensagens.php?contact=<?php echo intval($contact['id']); ?>" class="conversation-item <?php echo $contact['id'] === $selectedContactId ? 'active' : ''; ?>" data-contact-name="<?php echo htmlspecialchars($contact['nome']); ?>">
+                                        <a href="mensagens.php?contact=<?php echo intval($contact['id']); ?>" class="conversation-item <?php echo $contact['id'] === $selectedContactId ? 'active' : ''; ?>" data-contact-name="<?php echo htmlspecialchars($contact['nome']); ?>" data-presence-user-id="<?php echo intval($contact['id']); ?>">
                                             <div class="avatar-container">
                                                 <img src="<?php echo !empty($contact['foto_perfil']) ? '../uploads/'.htmlspecialchars($contact['foto_perfil']) : 'https://ui-avatars.com/api/?name='.urlencode($contact['nome']).'&background=9ACD32&color=fff'; ?>" alt="Avatar">
                                                 <?php $isOnline = fya_is_user_online($contact['id']); ?>
-                                                <?php if ($isOnline): ?><span class="online-indicator"></span><?php endif; ?>
+                                                <span class="online-indicator<?php echo $isOnline ? '' : ' d-none'; ?>"></span>
                                             </div>
                                             <div class="conversation-info overflow-hidden">
                                                 <div class="d-flex justify-content-between align-items-center">
@@ -322,14 +322,14 @@ if ($selectedContactId > 0) {
                                         <img src="<?php echo !empty($selectedContact['foto_perfil']) ? '../uploads/'.htmlspecialchars($selectedContact['foto_perfil']) : 'https://ui-avatars.com/api/?name='.urlencode($selectedContact['nome']).'&background=9ACD32&color=fff'; ?>" class="rounded-circle me-3" style="width: 40px; height: 40px;" alt="Avatar">
                                         <div>
                                             <h6 class="fw-bold m-0"><?php echo htmlspecialchars($selectedContact['nome']); ?></h6>
-                                            <small class="<?php echo $selectedContactOnline ? 'text-success' : 'text-muted'; ?>"><?php echo $selectedContactOnline ? 'Online agora' : 'Offline'; ?></small>
+                                            <small id="selectedContactStatus" class="<?php echo $selectedContactOnline ? 'text-success' : 'text-muted'; ?>"><?php echo $selectedContactOnline ? 'Online agora' : 'Offline'; ?></small>
                                         </div>
                                     </div>
                                     <div class="dropdown">
                                         <button class="btn btn-light btn-sm" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Ver Perfil</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-block me-2"></i> Bloquear</a></li>
+                                            <li><a class="dropdown-item" href="perfil_atleta.php?id=<?php echo intval($selectedContact['id']); ?>"><i class="bi bi-person me-2"></i> Ver Perfil</a></li>
+                                            <li><a class="dropdown-item text-danger" href="../controllers/messages_controller.php?action=block&user_id=<?php echo intval($selectedContact['id']); ?>"><i class="bi bi-block me-2"></i> Bloquear</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -410,6 +410,35 @@ if ($selectedContactId > 0) {
                     }
                 });
             });
+
+            async function refreshPresenceStatus() {
+                try {
+                    const response = await fetch('../controllers/messages_controller.php?action=presence');
+                    const data = await response.json();
+                    const onlineIds = new Set((data.online_ids || []).map(Number));
+
+                    document.querySelectorAll('[data-presence-user-id]').forEach(function (item) {
+                        const id = Number(item.getAttribute('data-presence-user-id'));
+                        const indicator = item.querySelector('.online-indicator');
+                        if (indicator) {
+                            indicator.classList.toggle('d-none', !onlineIds.has(id));
+                        }
+                    });
+
+                    const statusEl = document.getElementById('selectedContactStatus');
+                    if (statusEl) {
+                        const currentUserId = Number(document.querySelector('[data-presence-user-id]')?.getAttribute('data-presence-user-id') || 0);
+                        const isOnline = currentUserId > 0 && onlineIds.has(currentUserId);
+                        statusEl.textContent = isOnline ? 'Online agora' : 'Offline';
+                        statusEl.className = isOnline ? 'text-success' : 'text-muted';
+                    }
+                } catch (error) {
+                    console.error('Erro ao atualizar presença', error);
+                }
+            }
+
+            refreshPresenceStatus();
+            setInterval(refreshPresenceStatus, 15000);
         });
     </script>
 </body>

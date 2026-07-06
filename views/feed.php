@@ -2,24 +2,23 @@
 /**
  * FYA - Find Your Athlete
  * Arquivo: views/feed.php
- * Descrição: Painel Inicial com Feed de Atletas e Destaques.
+ * Descrição: Painel inicial com interface limpa e responsiva.
  */
 session_start();
 require_once '../config/conexao.php';
 
-// Proteção simples: Se não houver sessão, volta para o login
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header('Location: login.php');
     exit();
 }
 
 try {
     $stmtFeed = $pdo->prepare(
-        "SELECT p.*, u.nome AS autor, u.id AS autor_id, a.foto_perfil, a.modalidade, a.cidade, a.estado, a.pais " .
-        "FROM publicacoes p " .
-        "JOIN usuarios u ON u.id = p.id_usuario " .
-        "LEFT JOIN atletas_perfil a ON a.id_usuario = u.id " .
-        "ORDER BY p.data_criacao DESC LIMIT 8"
+        'SELECT p.*, u.nome AS autor, u.id AS autor_id, a.foto_perfil, a.modalidade, a.cidade, a.estado, a.pais ' .
+        'FROM publicacoes p ' .
+        'JOIN usuarios u ON u.id = p.id_usuario ' .
+        'LEFT JOIN atletas_perfil a ON a.id_usuario = u.id ' .
+        'ORDER BY p.data_criacao DESC LIMIT 8'
     );
     $stmtFeed->execute();
     $publicacoesFeed = $stmtFeed->fetchAll();
@@ -29,11 +28,11 @@ try {
 
 try {
     $stmtAtletas = $pdo->prepare(
-        "SELECT u.id, u.nome, u.tipo_conta, a.posicao, a.idade, a.velocidade, a.tecnica, a.fisico, a.visao_jogo, a.foto_perfil " .
-        "FROM usuarios u " .
-        "LEFT JOIN atletas_perfil a ON a.id_usuario = u.id " .
-        "WHERE u.id != ? AND u.tipo_conta = 'atleta' " .
-        "ORDER BY u.data_criacao DESC LIMIT 8"
+        'SELECT u.id, u.nome, u.tipo_conta, a.posicao, a.idade, a.velocidade, a.tecnica, a.fisico, a.visao_jogo, a.foto_perfil ' .
+        'FROM usuarios u ' .
+        'LEFT JOIN atletas_perfil a ON a.id_usuario = u.id ' .
+        'WHERE u.id != ? AND u.tipo_conta = "atleta" ' .
+        'ORDER BY u.data_criacao DESC LIMIT 8'
     );
     $stmtAtletas->execute([$_SESSION['user_id']]);
     $atletasFeed = $stmtAtletas->fetchAll();
@@ -47,16 +46,14 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FYA - Feed Inicial</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
     <style>
         :root {
-            --fya-primary: #9ACD32;
+            --fya-primary: #070D1B;
+            --fya-secondary: #18233F;
+            --fya-accent: #F08000;
             --transition-speed: 0.3s;
         }
 
@@ -69,136 +66,79 @@ try {
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bs-body-bg);
+            color: var(--fya-primary);
             transition: background-color var(--transition-speed);
         }
 
-        /* Estilização dos Cards de Destaque (Horizontal) */
-        .featured-card {
-            background-color: var(--bs-tertiary-bg);
-            border: none;
-            border-radius: 15px;
-            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-            cursor: pointer;
-            overflow: hidden;
-        }
-
-        .featured-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-
-        .featured-badge {
-            background-color: var(--fya-primary);
-            color: #000;
-            font-weight: bold;
-            font-size: 0.75rem;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-
-        /* Estilização das "Figurinhas" de Atletas (Grid) */
-        .athlete-card {
-            border: none;
-            border-radius: 20px;
-            overflow: hidden;
-            background-color: var(--bs-tertiary-bg);
-            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            height: 100%;
-        }
-
-        .athlete-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-        }
-
-        .athlete-img-container {
-            height: 220px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .athlete-img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .athlete-info {
-            padding: 1.2rem;
-        }
-
-        .athlete-name {
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 1.1rem;
-            margin-bottom: 0.2rem;
-            color: var(--bs-body-color);
-        }
-
-        .athlete-meta {
-            font-size: 0.85rem;
-            color: var(--bs-secondary-color);
-            margin-bottom: 1rem;
-        }
-
-        .metric-badge {
-            background-color: rgba(154, 205, 50, 0.2);
-            color: var(--fya-primary);
+        .btn-fya {
+            background-color: var(--fya-accent);
+            color: #fff;
             font-weight: 600;
-            font-size: 0.7rem;
-            padding: 3px 8px;
-            border-radius: 5px;
-            margin-right: 5px;
+            border: none;
+        }
+
+        .btn-fya:hover {
+            background-color: #d96d00;
+            color: #fff;
+        }
+
+        .featured-card, .athlete-card {
+            background-color: var(--bs-tertiary-bg);
+            border: none;
+            border-radius: 18px;
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            overflow: hidden;
+        }
+
+        .featured-card:hover, .athlete-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(7, 13, 27, 0.12);
+        }
+
+        .feed-highlight {
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(24, 35, 63, 0.14), rgba(240, 128, 0, 0.08));
+            border: 1px solid rgba(24, 35, 63, 0.1);
+        }
+
+        .section-title {
+            font-size: clamp(1.08rem, 1.8vw, 1.35rem);
+            line-height: 1.2;
         }
 
         .card-actions {
             border-top: 1px solid var(--bs-border-color);
             display: flex;
-            justify-content: space-around;
-            padding: 0.8rem;
+            justify-content: space-between;
+            padding: 0.8rem 0 0;
+            gap: 0.5rem;
         }
 
         .btn-action {
-            color: var(--bs-secondary-color);
+            color: var(--fya-secondary);
             transition: color var(--transition-speed);
             text-decoration: none;
             font-size: 0.9rem;
         }
 
         .btn-action:hover {
-            color: var(--fya-primary);
+            color: var(--fya-accent);
         }
 
-        .feed-highlight {
-            border-radius: 16px;
-            background: linear-gradient(135deg, rgba(154,205,50,0.16), rgba(255,255,255,0.04));
-            border: 1px solid rgba(154,205,50,0.18);
-        }
-
-        /* Ajuste do Layout com Sidebar */
         #main-content {
-            padding-top: 70px; /* Espaço para o header */
+            padding-top: 70px;
         }
     </style>
 </head>
 <body>
-
-    <!-- Inclui o Menu Lateral -->
     <?php include 'includes/sidebar.php'; ?>
 
-    <!-- Conteúdo Principal -->
     <div id="main-content">
-        
-        <!-- Inclui a Barra Superior -->
         <?php include 'includes/header.php'; ?>
 
-        <main class="container-fluid p-4">
-
-            <!-- AÇÃO: Botão para abrir tela de criação de publicação -->
+        <main class="container-fluid p-3 p-md-4">
             <?php if (isset($_SESSION['user_id'])): ?>
-                <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="mb-4 d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-2">
                     <div>
                         <h3 class="fw-bold mb-1">Bem-vindo ao seu feed</h3>
                         <p class="text-muted mb-0">Mantenha seu perfil ativo e mostre seu trabalho para olheiros e clubes.</p>
@@ -208,15 +148,15 @@ try {
             <?php endif; ?>
 
             <div class="row g-3 mb-4">
-                <div class="col-md-3 col-sm-6">
-                    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, rgba(154,205,50,0.2), rgba(255,255,255,0.04));">
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, rgba(24, 35, 63, 0.16), rgba(255,255,255,0.04));">
                         <div class="card-body">
                             <div class="small text-muted">Publicações</div>
                             <div class="fw-bold fs-4"><?php echo count($publicacoesFeed); ?></div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 col-sm-6">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
                             <div class="small text-muted">Talentos</div>
@@ -224,7 +164,7 @@ try {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 col-sm-6">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
                             <div class="small text-muted">Buscar</div>
@@ -232,7 +172,7 @@ try {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 col-sm-6">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
                             <div class="small text-muted">Mensagens</div>
@@ -244,12 +184,12 @@ try {
 
             <div class="feed-highlight p-3 mb-4">
                 <div class="row g-3 align-items-center">
-                    <div class="col-lg-8">
+                    <div class="col-12 col-lg-8">
                         <div class="fw-bold mb-1">Seu perfil está ganhando força</div>
                         <div class="small text-muted">Mantenha uma rotina de publicações, atualize links e mostre seu melhor trabalho para clubes e olheiros.</div>
                     </div>
-                    <div class="col-lg-4 text-lg-end">
-                        <div class="d-flex flex-wrap justify-content-lg-end gap-2">
+                    <div class="col-12 col-lg-4 text-lg-end">
+                        <div class="d-flex flex-wrap justify-content-start justify-content-lg-end gap-2">
                             <a href="editar_perfil.php" class="btn btn-sm btn-fya">Completar perfil</a>
                             <a href="nova_publicacao.php" class="btn btn-sm btn-outline-secondary">Nova publicação</a>
                         </div>
@@ -257,10 +197,9 @@ try {
                 </div>
             </div>
 
-            <!-- SEÇÃO: Publicações Recentes -->
             <section class="mb-5">
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h3 class="fw-bold m-0">Publicações Recentes <span class="text-muted fs-6 fw-normal">/ Atualizações dos atletas</span></h3>
+                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4 gap-2">
+                    <h3 class="fw-bold m-0 section-title">Publicações</h3>
                     <a href="buscar_atletas.php" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
                 </div>
 
@@ -280,7 +219,7 @@ try {
                                     <?php if (!empty($postImgSrc)): ?>
                                         <img src="<?php echo $postImgSrc; ?>" class="card-img-top" style="height: 200px; object-fit: cover;" alt="<?php echo htmlspecialchars($post['titulo'] ?: 'Publicação'); ?>">
                                     <?php else: ?>
-                                        <div class="athlete-img-container bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <div class="bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="height: 200px;">
                                             <i class="bi bi-image fs-1 text-muted"></i>
                                         </div>
                                     <?php endif; ?>
@@ -294,23 +233,28 @@ try {
                                                     $authorImg = '../uploads/' . htmlspecialchars($post['foto_perfil']);
                                                 }
                                             ?>
-                                            <img src="<?php echo $authorImg ?: 'https://ui-avatars.com/api/?name='.urlencode($post['autor']).'&background=9ACD32&color=fff'; ?>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" alt="Autor">
+                                            <a href="perfil_atleta.php?id=<?php echo intval($post['autor_id']); ?>" class="text-decoration-none">
+                                                <img src="<?php echo $authorImg ?: 'https://ui-avatars.com/api/?name='.urlencode($post['autor']).'&background=070D1B&color=fff'; ?>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" alt="Autor">
+                                            </a>
                                             <div>
-                                                <small class="d-block fw-semibold"><?php echo htmlspecialchars($post['autor']); ?></small>
+                                                <a href="perfil_atleta.php?id=<?php echo intval($post['autor_id']); ?>" class="text-decoration-none text-body fw-semibold">
+                                                    <small class="d-block fw-semibold"><?php echo htmlspecialchars($post['autor']); ?></small>
+                                                </a>
                                                 <small class="text-muted"><?php echo date('d/m/Y H:i', strtotime($post['data_criacao'])); ?></small>
                                             </div>
                                         </div>
                                         <div class="d-flex flex-wrap gap-2 mb-3 small text-muted">
                                             <?php if (!empty($post['modalidade'])): ?>
-                                                <span class="badge bg-success bg-opacity-10 text-success"><?php echo htmlspecialchars($post['modalidade']); ?></span>
+                                                <span class="badge bg-dark bg-opacity-10 text-dark"><?php echo htmlspecialchars($post['modalidade']); ?></span>
                                             <?php endif; ?>
                                             <?php if (!empty($post['cidade']) || !empty($post['estado']) || !empty($post['pais'])): ?>
                                                 <span><?php echo htmlspecialchars(trim(($post['cidade'] ?: '') . ($post['cidade'] && $post['estado'] ? ', ' : '') . ($post['estado'] ?: '') . ($post['pais'] ? ' - ' : '') . ($post['pais'] ?: ''))); ?></span>
                                             <?php endif; ?>
                                         </div>
                                         <div class="card-actions justify-content-between">
-                                            <div>
+                                            <div class="d-flex flex-wrap gap-2">
                                                 <a href="mensagens.php?contact=<?php echo intval($post['autor_id']); ?>" class="btn-action"><i class="bi bi-chat-left-text"></i> Conversar</a>
+                                                <a href="perfil_atleta.php?id=<?php echo intval($post['autor_id']); ?>" class="btn-action"><i class="bi bi-eye"></i> Perfil</a>
                                             </div>
                                             <div class="d-flex align-items-center gap-2">
                                                 <?php
@@ -324,17 +268,52 @@ try {
                                                         $stmtLiked = $pdo->prepare('SELECT COUNT(*) FROM likes WHERE id_publicacao = ? AND id_usuario = ?');
                                                         $stmtLiked->execute([$post['id'], $_SESSION['user_id']]);
                                                         $likedByUser = $stmtLiked->fetchColumn() > 0;
+
+                                                        $stmtComments = $pdo->prepare('SELECT COUNT(*) FROM comentarios WHERE id_publicacao = ?');
+                                                        $stmtComments->execute([$post['id']]);
+                                                        $commentsCount = (int)$stmtComments->fetchColumn();
+
+                                                        $stmtCommentsList = $pdo->prepare(
+                                                            'SELECT c.comentario, c.data_criacao, u.nome ' .
+                                                            'FROM comentarios c ' .
+                                                            'JOIN usuarios u ON u.id = c.id_usuario ' .
+                                                            'WHERE c.id_publicacao = ? ' .
+                                                            'ORDER BY c.data_criacao DESC LIMIT 3'
+                                                        );
+                                                        $stmtCommentsList->execute([$post['id']]);
+                                                        $postComments = $stmtCommentsList->fetchAll();
                                                     } catch (PDOException $e) {
                                                         $likesCount = 0;
                                                         $likedByUser = false;
+                                                        $commentsCount = 0;
+                                                        $postComments = [];
                                                     }
                                                 ?>
                                                 <a href="../controllers/post_controller.php?action=like&id=<?php echo intval($post['id']); ?>" class="btn-action" title="Curtir">
                                                     <i class="bi <?php echo $likedByUser ? 'bi-heart-fill text-danger' : 'bi-heart'; ?>"></i>
                                                 </a>
                                                 <small class="text-muted"><?php echo $likesCount; ?></small>
+                                                <span class="mx-2 text-muted">•</span>
+                                                <span class="text-muted small"><i class="bi bi-chat-left-text"></i> <?php echo $commentsCount; ?></span>
                                             </div>
                                         </div>
+                                        <?php if (!empty($postComments)): ?>
+                                            <div class="mt-2 px-3 pb-2">
+                                                <div class="small text-muted fw-semibold mb-2">Comentários</div>
+                                                <?php foreach ($postComments as $comment): ?>
+                                                    <div class="small text-muted mb-1">
+                                                        <strong><?php echo htmlspecialchars($comment['nome']); ?></strong>: <?php echo htmlspecialchars($comment['comentario']); ?>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <form action="../controllers/post_controller.php?action=comment" method="POST" class="px-3 pb-3">
+                                            <input type="hidden" name="post_id" value="<?php echo intval($post['id']); ?>">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" name="comentario" class="form-control" placeholder="Escreva um comentário..." required>
+                                                <button type="submit" class="btn btn-outline-secondary">Comentar</button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -345,10 +324,9 @@ try {
                 <?php endif; ?>
             </section>
 
-            <!-- SEÇÃO: Novos Talentos (Grid de Atletas) -->
             <section>
                 <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h3 class="fw-bold m-0">Novos Talentos <span class="text-muted fs-6 fw-normal">/ Cadastros recentes</span></h3>
+                    <h3 class="fw-bold m-0 section-title">Novos Talentos</h3>
                 </div>
 
                 <?php if (!empty($atletasFeed)): ?>
@@ -356,35 +334,32 @@ try {
                         <?php foreach ($atletasFeed as $atleta): ?>
                             <div class="col-12 col-sm-6 col-lg-3">
                                 <div class="card athlete-card h-100">
-                                    <div class="athlete-img-container">
-                                        <img src="<?php echo !empty($atleta['foto_perfil']) ? '../uploads/'.htmlspecialchars($atleta['foto_perfil']) : 'https://ui-avatars.com/api/?name='.urlencode($atleta['nome']).'&background=9ACD32&color=fff'; ?>" alt="<?php echo htmlspecialchars($atleta['nome']); ?>">
+                                    <div style="height: 220px; overflow: hidden;">
+                                        <img src="<?php echo !empty($atleta['foto_perfil']) ? '../uploads/'.htmlspecialchars($atleta['foto_perfil']) : 'https://ui-avatars.com/api/?name='.urlencode($atleta['nome']).'&background=070D1B&color=fff'; ?>" alt="<?php echo htmlspecialchars($atleta['nome']); ?>" style="width: 100%; height: 100%; object-fit: cover;">
                                     </div>
-                                    <div class="athlete-info">
-                                        <div class="athlete-name"><?php echo htmlspecialchars($atleta['nome']); ?></div>
-                                        <div class="athlete-meta"><?php echo htmlspecialchars($atleta['posicao'] ?: 'Atleta'); ?> • <?php echo htmlspecialchars($atleta['idade'] ?: '--'); ?> anos</div>
-                                        <div class="d-flex flex-wrap gap-1 mb-3">
-                                            <span class="metric-badge">VEL <?php echo intval($atleta['velocidade']); ?></span>
-                                            <span class="metric-badge">TEC <?php echo intval($atleta['tecnica']); ?></span>
-                                            <span class="metric-badge">VIS <?php echo intval($atleta['visao_jogo']); ?></span>
+                                    <div class="card-body">
+                                        <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($atleta['nome']); ?></h5>
+                                        <div class="text-muted small mb-3"><?php echo htmlspecialchars(($atleta['posicao'] ?: 'Atleta') . ' • ' . ($atleta['idade'] ? $atleta['idade'] . ' anos' : 'Idade não informada')); ?></div>
+                                        <div class="d-flex flex-wrap gap-2 mb-3">
+                                            <?php if (!empty($atleta['modalidade'])): ?><span class="badge bg-dark bg-opacity-10 text-dark"><?php echo htmlspecialchars($atleta['modalidade']); ?></span><?php endif; ?>
+                                            <?php if (!empty($atleta['velocidade'])): ?><span class="badge bg-dark bg-opacity-10 text-dark"><?php echo htmlspecialchars($atleta['velocidade']); ?> vel.</span><?php endif; ?>
                                         </div>
-                                    </div>
-                                    <div class="card-actions">
-                                        <a href="mensagens.php?contact=<?php echo intval($atleta['id']); ?>" class="btn-action"><i class="bi bi-chat-left-text"></i> Conversar</a>
-                                        <a href="buscar_atletas.php" class="btn-action"><i class="bi bi-eye"></i> Perfil</a>
+                                        <div class="card-actions justify-content-between">
+                                            <a href="perfil_atleta.php?id=<?php echo intval($atleta['id']); ?>" class="btn-action"><i class="bi bi-eye"></i> Perfil</a>
+                                            <a href="mensagens.php?contact=<?php echo intval($atleta['id']); ?>" class="btn-action"><i class="bi bi-chat-left-text"></i> Conversar</a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
                 <?php else: ?>
-                    <div class="alert alert-info">Ainda não há atletas cadastrados para exibir. Convide seus colegas e comece a trocar mensagens.</div>
+                    <div class="alert alert-info">Nenhum talento cadastrado ainda.</div>
                 <?php endif; ?>
             </section>
-
         </main>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

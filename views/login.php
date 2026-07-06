@@ -192,7 +192,7 @@
                                     <input class="form-check-input" type="checkbox" id="remember">
                                     <label class="form-check-label" for="remember">Lembrar-me</label>
                                 </div>
-                                <a href="#" class="text-decoration-none small" style="color: var(--fya-primary);">Esqueci minha senha</a>
+                                <a href="#" class="text-decoration-none small" data-bs-toggle="modal" data-bs-target="#modalRecuperarSenha" style="color: var(--fya-primary);">Esqueci minha senha</a>
                             </div>
                             <button type="submit" class="btn btn-fya w-100 py-2 mb-3">Acessar Conta</button>
                         </form>
@@ -230,6 +230,28 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <div class="modal fade" id="modalRecuperarSenha" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Recuperar senha</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="../controllers/auth_controller.php?action=forgot_password" method="POST">
+                    <div class="modal-body">
+                        <label class="form-label">E-mail cadastrado</label>
+                        <input type="email" name="email" class="form-control" placeholder="seu@email.com" required>
+                        <div class="small text-muted mt-2">Enviaremos instruções para redefinir sua senha.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-fya">Enviar link</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap 5 JS Bundle -->

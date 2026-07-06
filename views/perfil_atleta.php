@@ -105,6 +105,24 @@ if ($likesRecebidos > 0) { $badges[] = ['titulo' => 'Relevância', 'texto' => 'R
 
 $isOwner = ($viewUserId === $currentUserId);
 
+try {
+    $stmtFollowers = $pdo->prepare('SELECT COUNT(*) FROM follows WHERE id_seguido = ?');
+    $stmtFollowers->execute([$viewUserId]);
+    $followersCount = (int)$stmtFollowers->fetchColumn();
+
+    $stmtFollowing = $pdo->prepare('SELECT COUNT(*) FROM follows WHERE id_seguidor = ?');
+    $stmtFollowing->execute([$viewUserId]);
+    $followingCount = (int)$stmtFollowing->fetchColumn();
+
+    $stmtFollowingUser = $pdo->prepare('SELECT id FROM follows WHERE id_seguidor = ? AND id_seguido = ?');
+    $stmtFollowingUser->execute([$currentUserId, $viewUserId]);
+    $isFollowing = (bool)$stmtFollowingUser->fetch();
+} catch (PDOException $e) {
+    $followersCount = 0;
+    $followingCount = 0;
+    $isFollowing = false;
+}
+
 // foto do perfil (verifica arquivo antes)
 if (!empty($perfil['foto_perfil']) && file_exists(__DIR__ . '/../uploads/' . $perfil['foto_perfil'])) {
     $foto = '../uploads/' . $perfil['foto_perfil'];
@@ -125,17 +143,22 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        :root { --fya-primary: #9ACD32; --transition-speed: .3s; }
+        :root { --fya-primary: #070D1B; --fya-secondary: #18233F; --fya-accent: #F08000; --transition-speed: .3s; }
         html,body{margin:0;padding:0}
-        body { font-family: 'Inter', sans-serif; }
-        .profile-cover { height:200px; width:100%; background: #ddd center/cover no-repeat; border-radius:0 0 20px 20px; }
-        .profile-avatar { width:130px; height:130px; border-radius:50%; border:5px solid var(--bs-body-bg); object-fit:cover; box-shadow:0 4px 10px rgba(0,0,0,.15); }
-        .section-card { background-color: var(--bs-tertiary-bg); border:none; border-radius:12px; padding:1.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.04); }
-        .summary-card { border:1px solid rgba(154,205,50,0.2); border-radius:14px; padding:1rem; background: linear-gradient(135deg, rgba(154,205,50,0.14), rgba(255,255,255,0.02)); }
-        .summary-card .value { font-size:1.35rem; font-weight:700; color: var(--fya-primary); }
-        .activity-item { border-left:3px solid var(--fya-primary); padding-left:0.8rem; margin-bottom:0.8rem; }
-        .activity-pill { border-radius:999px; background-color: rgba(154,205,50,0.12); color: var(--fya-primary); padding:0.25rem 0.7rem; font-size:0.75rem; }
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fc; }
+        .profile-cover { height:220px; width:100%; background: linear-gradient(135deg, var(--fya-secondary), var(--fya-primary)); border-radius:0 0 24px 24px; }
+        .profile-avatar { width:128px; height:128px; border-radius:50%; border:5px solid #fff; object-fit:cover; box-shadow:0 8px 24px rgba(0,0,0,.18); }
+        .section-card { background-color: #fff; border:none; border-radius:16px; padding:1.25rem; box-shadow:0 6px 18px rgba(0,0,0,0.05); }
+        .stat-pill { display:flex; align-items:center; justify-content:center; gap:.35rem; padding:.7rem .9rem; border-radius:999px; background:#f3f5f9; color:var(--fya-secondary); font-size:.95rem; }
+        .stat-pill strong { color:var(--fya-primary); }
+        .btn-fya { background-color: var(--fya-accent); color:#fff; border:none; }
+        .btn-fya:hover { background-color:#d96d00; color:#fff; }
         #main-content { padding-top:70px; }
+        @media (max-width: 576px) {
+            .profile-avatar { width:104px; height:104px; }
+            .profile-header { text-align:center; }
+            .profile-actions { justify-content:center !important; }
+        }
     </style>
 </head>
 <body>
@@ -148,29 +171,49 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
                 <div class="alert alert-success"><?php echo $alertMessage; ?></div>
             <?php endif; ?>
 
-            <section class="profile-header mb-5 position-relative">
+            <section class="profile-header mb-4 position-relative">
                 <div class="profile-cover"></div>
-                <div class="position-absolute" style="top:120px; left:30px;">
-                    <img src="<?php echo $foto; ?>" alt="Avatar" class="profile-avatar">
-                </div>
-                <div class="position-absolute" style="top:140px; right:30px;">
-                    <?php if ($isOwner): ?>
-                        <a href="editar_perfil.php" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Editar perfil</a>
-                    <?php else: ?>
-                        <a href="mensagens.php?contact=<?php echo intval($viewUserId); ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-chat-left-text"></i> Enviar mensagem</a>
-                    <?php endif; ?>
+                <div class="position-absolute start-0 end-0" style="top:90px;">
+                    <div class="container-fluid px-3 px-md-4">
+                        <div class="row align-items-end g-3">
+                            <div class="col-12 col-md-4 text-center text-md-start">
+                                <img src="<?php echo $foto; ?>" alt="Avatar" class="profile-avatar">
+                            </div>
+                            <div class="col-12 col-md-8">
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center align-items-md-end gap-3">
+                                    <div class="text-center text-md-start">
+                                        <h3 class="fw-bold mb-1 text-white"><?php echo htmlspecialchars($perfil['nome']); ?></h3>
+                                        <p class="text-light mb-2 small"><?php echo htmlspecialchars($perfil['email']); ?></p>
+                                        <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-2 mb-2">
+                                            <span class="stat-pill"><strong><?php echo count($publicacoes); ?></strong> publicações</span>
+                                            <span class="stat-pill"><strong><?php echo $followersCount; ?></strong> seguidores</span>
+                                            <span class="stat-pill"><strong><?php echo $followingCount; ?></strong> seguindo</span>
+                                            <span class="stat-pill"><strong><?php echo $likesRecebidos; ?></strong> curtidas</span>
+                                        </div>
+                                    </div>
+                                    <div class="profile-actions d-flex flex-wrap justify-content-center gap-2">
+                                        <?php if ($isOwner): ?>
+                                            <button class="btn btn-fya btn-sm" data-bs-toggle="modal" data-bs-target="#modalNovaPublicacao"><i class="bi bi-plus-lg"></i> Nova Publicação</button>
+                                            <a href="editar_perfil.php" class="btn btn-outline-light btn-sm"><i class="bi bi-pencil"></i> Editar perfil</a>
+                                        <?php else: ?>
+                                            <a href="mensagens.php?contact=<?php echo intval($viewUserId); ?>" class="btn btn-outline-light btn-sm"><i class="bi bi-chat-left-text"></i> Enviar mensagem</a>
+                                            <a href="../controllers/post_controller.php?action=follow&user_id=<?php echo intval($viewUserId); ?>" class="btn btn-sm <?php echo $isFollowing ? 'btn-outline-danger' : 'btn-fya'; ?>">
+                                                <i class="bi bi-person-plus"></i> <?php echo $isFollowing ? 'Deixar de seguir' : 'Seguir'; ?>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
             <div class="row g-4">
                 <div class="col-lg-4">
                     <div class="section-card">
-                        <h4 class="fw-bold"><?php echo htmlspecialchars($perfil['nome']); ?></h4>
-                        <p class="text-muted small mb-2"><?php echo htmlspecialchars($perfil['email']); ?></p>
-                        <div class="mb-3">
-                            <strong>Sobre</strong>
-                            <p class="text-muted small"><?php echo !empty($perfil['bio']) ? nl2br(htmlspecialchars($perfil['bio'])) : 'Nenhuma bio adicionada.'; ?></p>
-                        </div>
+                        <h5 class="fw-bold mb-3">Informações básicas</h5>
+                        <p class="text-muted small mb-3"><?php echo !empty($perfil['bio']) ? nl2br(htmlspecialchars($perfil['bio'])) : 'Nenhuma bio adicionada.'; ?></p>
                         <div class="row g-2">
                             <div class="col-6"><small class="text-muted">Idade</small><div><?php echo $perfil['idade'] ?? '--'; ?></div></div>
                             <div class="col-6"><small class="text-muted">Altura</small><div><?php echo $perfil['altura'] ?? '--'; ?></div></div>
@@ -212,74 +255,9 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
                             <span class="badge bg-success bg-opacity-10 text-success"><?php echo $perfilCompletoPercent; ?>%</span>
                         </div>
                         <div class="progress rounded-pill mb-2" style="height: 10px;">
-                            <div class="progress-bar" style="width: <?php echo $perfilCompletoPercent; ?>%; background-color: var(--fya-primary);"></div>
+                            <div class="progress-bar" style="width: <?php echo $perfilCompletoPercent; ?>%; background-color: var(--fya-accent);"></div>
                         </div>
                         <div class="small text-muted">Complete links, localização e currículo para aumentar sua visibilidade e atrair mais oportunidades.</div>
-                    </div>
-
-                    <div class="section-card mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="fw-bold mb-0">Resumo rápido</h4>
-                            <span class="badge bg-success bg-opacity-10 text-success">Perfil <?php echo $perfilCompletoPercent; ?>%</span>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-3 col-sm-6">
-                                <div class="summary-card text-center">
-                                    <div class="value"><?php echo count($publicacoes); ?></div>
-                                    <div class="small text-muted">Publicações</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="summary-card text-center">
-                                    <div class="value"><?php echo $likesRecebidos; ?></div>
-                                    <div class="small text-muted">Curtidas</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="summary-card text-center">
-                                    <div class="value"><?php echo $mensagensRecebidas; ?></div>
-                                    <div class="small text-muted">Mensagens</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="summary-card text-center">
-                                    <div class="value"><?php echo $perfilCompletoPercent; ?>%</div>
-                                    <div class="small text-muted">Completo</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <?php if (!empty($badges)): ?>
-                        <div class="section-card mb-4">
-                            <h5 class="fw-bold mb-3">Conquistas e destaque</h5>
-                            <div class="d-flex flex-wrap gap-2">
-                                <?php foreach ($badges as $badge): ?>
-                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2">
-                                        <strong><?php echo htmlspecialchars($badge['titulo']); ?></strong> · <?php echo htmlspecialchars($badge['texto']); ?>
-                                    </span>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="section-card mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="fw-bold mb-0">Atividades recentes</h4>
-                            <span class="activity-pill">Atualizado agora</span>
-                        </div>
-                        <div class="activity-item">
-                            <div class="fw-semibold">Perfil em destaque</div>
-                            <div class="text-muted small">Seu perfil está disponível para visualização por clubes e olheiros.</div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="fw-semibold">Última publicação</div>
-                            <div class="text-muted small"><?php echo !empty($publicacoes) ? htmlspecialchars($publicacoes[0]['titulo'] ?: 'Publicação recente') : 'Ainda não há publicações'; ?></div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="fw-semibold">Engajamento</div>
-                            <div class="text-muted small">Você recebeu <?php echo $likesRecebidos; ?> curtidas e <?php echo $mensagensRecebidas; ?> mensagens.</div>
-                        </div>
                     </div>
 
                     <div class="section-card">
@@ -303,7 +281,13 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                                     <h5 class="card-title mb-0"><?php echo htmlspecialchars($post['titulo'] ?: 'Sem título'); ?></h5>
                                                     <?php if ($isOwner): ?>
-                                                        <a href="../controllers/post_controller.php?action=delete&id=<?php echo intval($post['id']); ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Excluir publicação?');"><i class="bi bi-trash"></i></a>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
+                                                            <ul class="dropdown-menu">
+                                                                <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#modalEditarPost_<?php echo intval($post['id']); ?>">Editar Publicação</button></li>
+                                                                <li><a class="dropdown-item text-danger" href="../controllers/post_controller.php?action=delete&id=<?php echo intval($post['id']); ?>" onclick="return confirm('Excluir publicação?');">Excluir</a></li>
+                                                            </ul>
+                                                        </div>
                                                     <?php endif; ?>
                                                 </div>
                                                 <p class="text-muted small"><?php echo nl2br(htmlspecialchars($post['descricao'] ?: '')); ?></p>
@@ -322,18 +306,66 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
                                                             $stmtLiked = $pdo->prepare('SELECT COUNT(*) FROM likes WHERE id_publicacao = ? AND id_usuario = ?');
                                                             $stmtLiked->execute([$post['id'], $currentUserId]);
                                                             $likedByUser = $stmtLiked->fetchColumn() > 0;
+
+                                                            $stmtCommentsCount = $pdo->prepare('SELECT COUNT(*) FROM comentarios WHERE id_publicacao = ?');
+                                                            $stmtCommentsCount->execute([$post['id']]);
+                                                            $commentsCount = (int)$stmtCommentsCount->fetchColumn();
                                                         } catch (PDOException $e) {
-                                                            $likesCount = 0; $likedByUser = false;
+                                                            $likesCount = 0; $likedByUser = false; $commentsCount = 0;
                                                         }
                                                     ?>
                                                     <a href="../controllers/post_controller.php?action=like&id=<?php echo intval($post['id']); ?>" class="text-decoration-none">
                                                         <i class="bi <?php echo $likedByUser ? 'bi-heart-fill text-danger' : 'bi-heart'; ?>"></i>
                                                     </a>
                                                     <small class="text-muted"><?php echo $likesCount; ?></small>
+                                                    <span class="text-muted">•</span>
+                                                    <small class="text-muted"><i class="bi bi-chat-left-text"></i> <?php echo $commentsCount; ?></small>
                                                 </div>
+                                            </div>
+                                            <div class="card-body border-top">
+                                                <form action="../controllers/post_controller.php?action=comment" method="POST" class="mt-2">
+                                                    <input type="hidden" name="post_id" value="<?php echo intval($post['id']); ?>">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" name="comentario" class="form-control" placeholder="Adicionar comentário..." required>
+                                                        <button type="submit" class="btn btn-outline-secondary">Enviar</button>
+                                                    </div>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
+                                    <?php if ($isOwner): ?>
+                                    <div class="modal fade" id="modalEditarPost_<?php echo intval($post['id']); ?>" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header border-0">
+                                                    <h5 class="modal-title fw-bold">Editar Publicação</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form action="../controllers/post_controller.php?action=edit" method="POST" enctype="multipart/form-data">
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="post_id" value="<?php echo intval($post['id']); ?>">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Legenda</label>
+                                                            <input type="text" name="titulo_publicacao" class="form-control" value="<?php echo htmlspecialchars($post['titulo'] ?: ''); ?>">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Bio/Descrição</label>
+                                                            <textarea name="descricao_publicacao" class="form-control" rows="3"><?php echo htmlspecialchars($post['descricao'] ?: ''); ?></textarea>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Trocar imagem</label>
+                                                            <input type="file" name="imagem_publicacao" class="form-control" accept="image/*">
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-0">
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-fya">Salvar Alterações</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
                                 <?php endforeach; ?>
                             </div>
                         <?php else: ?>
@@ -343,6 +375,39 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
                     </div>
                 </div>
             </div>
+
+            <?php if ($isOwner): ?>
+            <div class="modal fade" id="modalNovaPublicacao" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title fw-bold">Nova Publicação</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="../controllers/post_controller.php?action=create" method="POST" enctype="multipart/form-data">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Título</label>
+                                    <input type="text" name="titulo_publicacao" class="form-control" placeholder="Título da publicação">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Descrição</label>
+                                    <textarea name="descricao_publicacao" class="form-control" rows="3" placeholder="Escreva o conteúdo da publicação"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Imagem (opcional)</label>
+                                    <input type="file" name="imagem_publicacao" class="form-control" accept="image/*">
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-fya">Publicar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
 
         </main>
     </div>

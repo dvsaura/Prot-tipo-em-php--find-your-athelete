@@ -36,26 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nomeExibicao = trim($_POST['nome_exibicao'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $senha = trim($_POST['senha'] ?? '');
-    $posicao = $_POST['posicao'] ?? '';
-    $idade = $_POST['idade'] ?? 0;
-    $peso = $_POST['peso'] ?? 0;
-    $altura = $_POST['altura'] ?? 0;
-    $modalidade = $_POST['modalidade'] ?? '';
-    $cidade = $_POST['cidade'] ?? '';
-    $estado = $_POST['estado'] ?? '';
-    $pais = $_POST['pais'] ?? '';
-    $bio = $_POST['bio'] ?? '';
-    $historico = $_POST['historico_campeonatos'] ?? '';
-    $youtube = $_POST['youtube_link'] ?? '';
-    $tiktok = $_POST['tiktok_link'] ?? '';
-    $instagram = $_POST['instagram_link'] ?? '';
-    $curriculo = $_POST['curriculo_link'] ?? '';
-    
-    // Atributos Técnicos
-    $vel = $_POST['velocidade'] ?? 0;
-    $tec = $_POST['tecnica'] ?? 0;
-    $fis = $_POST['fisico'] ?? 0;
-    $vis = $_POST['visao_jogo'] ?? 0;
+    $posicao = trim($_POST['posicao'] ?? '') !== '' ? trim($_POST['posicao'] ?? '') : ($perfil['posicao'] ?? '');
+    $idade = trim($_POST['idade'] ?? '') !== '' ? (int)$_POST['idade'] : ((int)($perfil['idade'] ?? 0));
+    $peso = trim($_POST['peso'] ?? '') !== '' ? (float)$_POST['peso'] : ((float)($perfil['peso'] ?? 0));
+    $altura = trim($_POST['altura'] ?? '') !== '' ? (float)$_POST['altura'] : ((float)($perfil['altura'] ?? 0));
+    $modalidade = trim($_POST['modalidade'] ?? '') !== '' ? trim($_POST['modalidade'] ?? '') : ($perfil['modalidade'] ?? '');
+    $cidade = trim($_POST['cidade'] ?? '') !== '' ? trim($_POST['cidade'] ?? '') : ($perfil['cidade'] ?? '');
+    $estado = trim($_POST['estado'] ?? '') !== '' ? trim($_POST['estado'] ?? '') : ($perfil['estado'] ?? '');
+    $pais = trim($_POST['pais'] ?? '') !== '' ? trim($_POST['pais'] ?? '') : ($perfil['pais'] ?? '');
+    $bio = trim($_POST['bio'] ?? '') !== '' ? trim($_POST['bio'] ?? '') : ($perfil['bio'] ?? '');
+    $historico = trim($_POST['historico_campeonatos'] ?? '') !== '' ? trim($_POST['historico_campeonatos'] ?? '') : ($perfil['historico_campeonatos'] ?? '');
+    $youtube = trim($_POST['youtube_link'] ?? '') !== '' ? trim($_POST['youtube_link'] ?? '') : ($perfil['youtube_link'] ?? '');
+    $tiktok = trim($_POST['tiktok_link'] ?? '') !== '' ? trim($_POST['tiktok_link'] ?? '') : ($perfil['tiktok_link'] ?? '');
+    $instagram = trim($_POST['instagram_link'] ?? '') !== '' ? trim($_POST['instagram_link'] ?? '') : ($perfil['instagram_link'] ?? '');
+    $curriculo = trim($_POST['curriculo_link'] ?? '') !== '' ? trim($_POST['curriculo_link'] ?? '') : ($perfil['curriculo_link'] ?? '');
 
     try {
         if ($nomeExibicao === '' || $email === '') {
@@ -99,15 +93,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // 2. Atualização de todos os dados incluindo Atributos
+        // 2. Atualização dos dados principais do perfil
         $stmt = $pdo->prepare(" 
             UPDATE atletas_perfil 
             SET posicao = ?, idade = ?, peso = ?, altura = ?, modalidade = ?, cidade = ?, estado = ?, pais = ?, bio = ?, historico_campeonatos = ?, 
-                youtube_link = ?, tiktok_link = ?, instagram_link = ?, curriculo_link = ?,
-                velocidade = ?, tecnica = ?, fisico = ?, visao_jogo = ?
+                youtube_link = ?, tiktok_link = ?, instagram_link = ?, curriculo_link = ?
             WHERE id_usuario = ?
         ");
-        $stmt->execute([$posicao, $idade, $peso, $altura, $modalidade, $cidade, $estado, $pais, $bio, $historico, $youtube, $tiktok, $instagram, $curriculo, $vel, $tec, $fis, $vis, $userId]);
+        $stmt->execute([$posicao, $idade, $peso, $altura, $modalidade, $cidade, $estado, $pais, $bio, $historico, $youtube, $tiktok, $instagram, $curriculo, $userId]);
 
         $stmt = $pdo->prepare("SELECT * FROM atletas_perfil WHERE id_usuario = ?");
         $stmt->execute([$userId]);
@@ -229,27 +222,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="col-12">
                                     <label class="form-label">Histórico de Campeonatos</label>
                                     <textarea name="historico_campeonatos" class="form-control" rows="3"><?php echo htmlspecialchars($perfil['historico_campeonatos'] ?? ''); ?></textarea>
-                                </div>
-
-                                <div class="col-12 mt-4">
-                                    <h5 class="fw-bold mb-3">Nível Técnico (0 a 100)</h5>
-                                    
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between"><label>Velocidade</label> <span id="val_vel"><?php echo $perfil['velocidade']; ?>%</span></div>
-                                        <input type="range" name="velocidade" class="form-range attr-slider" min="0" max="100" value="<?php echo $perfil['velocidade']; ?>" oninput="document.getElementById('val_vel').innerText = this.value + '%'"></input>
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between"><label>Técnica</label> <span id="val_tec"><?php echo $perfil['tecnica']; ?>%</span></div>
-                                        <input type="range" name="tecnica" class="form-range attr-slider" min="0" max="100" value="<?php echo $perfil['tecnica']; ?>" oninput="document.getElementById('val_tec').innerText = this.value + '%'"></input>
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between"><label>Físico</label> <span id="val_fis"><?php echo $perfil['fisico']; ?>%</span></div>
-                                        <input type="range" name="fisico" class="form-range attr-slider" min="0" max="100" value="<?php echo $perfil['fisico']; ?>" oninput="document.getElementById('val_fis').innerText = this.value + '%'"></input>
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between"><label>Visão de Jogo</label> <span id="val_vis"><?php echo $perfil['visao_jogo']; ?>%</span></div>
-                                        <input type="range" name="visao_jogo" class="form-range attr-slider" min="0" max="100" value="<?php echo $perfil['visao_jogo']; ?>" oninput="document.getElementById('val_vis').innerText = this.value + '%'"></input>
-                                    </div>
                                 </div>
 
                                 <div class="col-md-6">
