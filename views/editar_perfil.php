@@ -33,10 +33,6 @@ $perfil = $stmt->fetch();
 
 // --- PROCESSAMENTO DO FORMULÁRIO ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nomeExibicao = trim($_POST['nome_exibicao'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $senha = trim($_POST['senha'] ?? '');
-    $posicao = trim($_POST['posicao'] ?? '') !== '' ? trim($_POST['posicao'] ?? '') : ($perfil['posicao'] ?? '');
     $idade = trim($_POST['idade'] ?? '') !== '' ? (int)$_POST['idade'] : ((int)($perfil['idade'] ?? 0));
     $peso = trim($_POST['peso'] ?? '') !== '' ? (float)$_POST['peso'] : ((float)($perfil['peso'] ?? 0));
     $altura = trim($_POST['altura'] ?? '') !== '' ? (float)$_POST['altura'] : ((float)($perfil['altura'] ?? 0));
@@ -52,30 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $curriculo = trim($_POST['curriculo_link'] ?? '') !== '' ? trim($_POST['curriculo_link'] ?? '') : ($perfil['curriculo_link'] ?? '');
 
     try {
-        if ($nomeExibicao === '' || $email === '') {
-            throw new Exception('Nome e e-mail são obrigatórios.');
-        }
-
-        $stmtCheckEmail = $pdo->prepare('SELECT id FROM usuarios WHERE email = ? AND id != ?');
-        $stmtCheckEmail->execute([$email, $userId]);
-        if ($stmtCheckEmail->fetch()) {
-            throw new Exception('Este e-mail já está em uso por outro usuário.');
-        }
-
-        $userUpdateSql = 'UPDATE usuarios SET nome = ?, email = ?';
-        $userParams = [$nomeExibicao, $email];
-        if ($senha !== '') {
-            $userUpdateSql .= ', senha = ?';
-            $userParams[] = password_hash($senha, PASSWORD_BCRYPT);
-        }
-        $userUpdateSql .= ' WHERE id = ?';
-        $userParams[] = $userId;
-        $stmtUserUpdate = $pdo->prepare($userUpdateSql);
-        $stmtUserUpdate->execute($userParams);
-
-        $_SESSION['user_nome'] = $nomeExibicao;
-        $_SESSION['user_email'] = $email;
-
         // 1. Upload de Foto de Perfil
         if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = fya_upload_dir();
@@ -96,11 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Atualização dos dados principais do perfil
         $stmt = $pdo->prepare(" 
             UPDATE atletas_perfil 
-            SET posicao = ?, idade = ?, peso = ?, altura = ?, modalidade = ?, cidade = ?, estado = ?, pais = ?, bio = ?, historico_campeonatos = ?, 
+            SET idade = ?, peso = ?, altura = ?, modalidade = ?, cidade = ?, estado = ?, pais = ?, bio = ?, historico_campeonatos = ?, 
                 youtube_link = ?, tiktok_link = ?, instagram_link = ?, curriculo_link = ?
             WHERE id_usuario = ?
         ");
-        $stmt->execute([$posicao, $idade, $peso, $altura, $modalidade, $cidade, $estado, $pais, $bio, $historico, $youtube, $tiktok, $instagram, $curriculo, $userId]);
+        $stmt->execute([$idade, $peso, $altura, $modalidade, $cidade, $estado, $pais, $bio, $historico, $youtube, $tiktok, $instagram, $curriculo, $userId]);
 
         $stmt = $pdo->prepare("SELECT * FROM atletas_perfil WHERE id_usuario = ?");
         $stmt->execute([$userId]);
@@ -171,10 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
 
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Posição</label>
-                                    <input type="text" name="posicao" class="form-control" value="<?php echo htmlspecialchars($perfil['posicao'] ?? ''); ?>">
-                                </div>
                                 <div class="col-md-2">
                                     <label class="form-label">Idade</label>
                                     <input type="number" name="idade" class="form-control" value="<?php echo $perfil['idade'] ?? ''; ?>">
@@ -202,16 +170,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Cidade</label>
-                                    <input type="text" name="cidade" class="form-control" value="<?php echo htmlspecialchars($perfil['cidade'] ?? ''); ?>">
+                                    <label class="form-label">País</label>
+                                    <select id="paisSelect" name="pais" class="form-select">
+                                        <option value="">Selecione o país</option>
+                                        <option value="Brasil" <?php echo ($perfil['pais'] ?? '') === 'Brasil' ? 'selected' : ''; ?>>Brasil</option>
+                                        <option value="Argentina" <?php echo ($perfil['pais'] ?? '') === 'Argentina' ? 'selected' : ''; ?>>Argentina</option>
+                                        <option value="Outros" <?php echo ($perfil['pais'] ?? '') === 'Outros' ? 'selected' : ''; ?>>Outros países</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Estado</label>
-                                    <input type="text" name="estado" class="form-control" value="<?php echo htmlspecialchars($perfil['estado'] ?? ''); ?>">
+                                    <select id="estadoSelect" name="estado" class="form-select">
+                                        <option value="">Selecione o estado</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">País</label>
-                                    <input type="text" name="pais" class="form-control" value="<?php echo htmlspecialchars($perfil['pais'] ?? ''); ?>">
+                                <div class="col-md-4">
+                                    <label class="form-label">Cidade</label>
+                                    <select id="cidadeSelect" name="cidade" class="form-select">
+                                        <option value="">Selecione a cidade</option>
+                                    </select>
                                 </div>
 
                                 <div class="col-12">
@@ -224,14 +201,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <textarea name="historico_campeonatos" class="form-control" rows="3"><?php echo htmlspecialchars($perfil['historico_campeonatos'] ?? ''); ?></textarea>
                                 </div>
 
-                                <div class="col-md-6">
-                                    <label class="form-label">E-mail</label>
-                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userData['email'] ?? ''); ?>" placeholder="seu@email.com" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Nova senha</label>
-                                    <input type="password" name="senha" class="form-control" placeholder="Deixe em branco para manter a atual">
-                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Instagram</label>
                                     <input type="url" name="instagram_link" class="form-control" value="<?php echo htmlspecialchars($perfil['instagram_link'] ?? ''); ?>">
@@ -292,6 +261,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 reader.onload = function(e) { document.getElementById('preview').src = e.target.result; }
                 reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        const locationData = {
+            Brasil: {
+                'São Paulo': ['São Paulo', 'Campinas', 'Santos', 'São Bernardo do Campo'],
+                'Rio de Janeiro': ['Rio de Janeiro', 'Niterói', 'Petrópolis', 'Campos dos Goytacazes'],
+                'Minas Gerais': ['Belo Horizonte', 'Uberlândia', 'Juiz de Fora']
+            },
+            Argentina: {
+                'Buenos Aires': ['Buenos Aires', 'La Plata', 'Mar del Plata'],
+                'Córdoba': ['Córdoba', 'Villa Carlos Paz', 'Río Cuarto'],
+                'Santa Fe': ['Rosario', 'Santa Fe', 'Rafaela']
+            }
+        };
+
+        const paisSelect = document.getElementById('paisSelect');
+        const estadoSelect = document.getElementById('estadoSelect');
+        const cidadeSelect = document.getElementById('cidadeSelect');
+        const selectedEstado = '<?php echo addslashes($perfil['estado'] ?? ''); ?>';
+        const selectedCidade = '<?php echo addslashes($perfil['cidade'] ?? ''); ?>';
+
+        function populateStates() {
+            const pais = paisSelect.value;
+            estadoSelect.innerHTML = '<option value="">Selecione o estado</option>';
+            cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>';
+            if (locationData[pais]) {
+                Object.keys(locationData[pais]).forEach(function(estado) {
+                    const option = document.createElement('option');
+                    option.value = estado;
+                    option.textContent = estado;
+                    if (estado === selectedEstado) option.selected = true;
+                    estadoSelect.appendChild(option);
+                });
+                estadoSelect.disabled = false;
+            } else {
+                estadoSelect.disabled = true;
+                cidadeSelect.disabled = true;
+            }
+            populateCities();
+        }
+
+        function populateCities() {
+            const pais = paisSelect.value;
+            const estado = estadoSelect.value;
+            cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>';
+            if (locationData[pais] && locationData[pais][estado]) {
+                locationData[pais][estado].forEach(function(cidade) {
+                    const option = document.createElement('option');
+                    option.value = cidade;
+                    option.textContent = cidade;
+                    if (cidade === selectedCidade) option.selected = true;
+                    cidadeSelect.appendChild(option);
+                });
+                cidadeSelect.disabled = false;
+            } else {
+                cidadeSelect.disabled = true;
+            }
+        }
+
+        paisSelect.addEventListener('change', populateStates);
+        estadoSelect.addEventListener('change', populateCities);
+
+        if (paisSelect.value) {
+            populateStates();
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -8,11 +8,13 @@
 <header class="navbar navbar-expand-lg bg-body-tertiary border-bottom px-3 shadow-sm" style="height:70px; z-index: 1040; position: fixed; top: 0; left: 0; width: 100vw;">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3">
         <a href="feed.php" class="d-flex align-items-center text-decoration-none text-body fw-semibold">
-            <img src="https://cdn-icons-png.flaticon.com/512/857/857451.png" alt="Logo" style="width: 34px; height: 34px; object-fit: cover;" class="me-2">
-            <div class="d-none d-md-block">
-                <div>FIND YOUR ATHLETE</div>
-                <small class="text-muted">Find Your Athlete</small>
-            </div>
+            <?php
+                // Prefer uploaded app logo if present, otherwise fallback to CDN icon
+                $appLogoPath = __DIR__ . '/../../uploads/foto.png';
+                $appLogoWeb = file_exists($appLogoPath) ? '../uploads/foto.png' : 'https://cdn-icons-png.flaticon.com/512/857/857451.png';
+            ?>
+            <img src="<?php echo htmlspecialchars($appLogoWeb); ?>" alt="Find Your Athlete" style="height: 60px; width: auto; object-fit: contain;" class="me-2">
+            <span class="visually-hidden">Find Your Athlete</span>
         </a>
 
         <div class="d-flex align-items-center gap-3 ms-auto">
@@ -77,7 +79,108 @@
 
         themeToggle.addEventListener('click', () => {
             const currentTheme = htmlElement.getAttribute('data-bs-theme');
-            applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+            const next = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(next);
         });
     })();
 </script>
+
+<!-- (Favicon handling removed per revert request) -->
+
+<!-- Dark theme overrides (unifica cores do perfil para todo o app) -->
+<style>
+    [data-bs-theme="dark"] body { background-color: #071018; color: #e2e8f0; }
+    [data-bs-theme="dark"] .profile-cover { background: linear-gradient(135deg, #0f172a, #071014); }
+    [data-bs-theme="dark"] .section-card,
+    [data-bs-theme="dark"] .card,
+    [data-bs-theme="dark"] .card-body,
+    [data-bs-theme="dark"] .card-footer,
+    [data-bs-theme="dark"] .dropdown-menu,
+    [data-bs-theme="dark"] .modal-content { background-color: #0f172a; color: #e2e8f0; }
+
+    [data-bs-theme="dark"] .config-card { background-color: #0f172a; }
+    [data-bs-theme="dark"] .stat-pill { background: #1f2937; color: #e2e8f0; }
+    [data-bs-theme="dark"] .stat-pill strong { color: #9ACD32; }
+
+    [data-bs-theme="dark"] .btn-fya { background-color: #9ACD32; color: #000; }
+    [data-bs-theme="dark"] .btn-fya:hover { background-color: #8fb52a; }
+
+    [data-bs-theme="dark"] .btn-outline-secondary,
+    [data-bs-theme="dark"] .btn-outline-light,
+    [data-bs-theme="dark"] .btn-outline-dark { color: #d1d5db; border-color: rgba(209,213,219,0.07); }
+
+    [data-bs-theme="dark"] .navbar,
+    [data-bs-theme="dark"] .bg-body-tertiary { background-color: rgba(15,17,26,0.65) !important; backdrop-filter: blur(6px); }
+
+    [data-bs-theme="dark"] .sidebar { background-color: #071018; }
+    [data-bs-theme="dark"] .search-container { background-color: #071018; }
+
+    /* ensure modals, dropdowns, menus are readable */
+    [data-bs-theme="dark"] .dropdown-menu, [data-bs-theme="dark"] .modal-content { box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+</style>
+
+<!-- Override for elements using inline linear-gradients or light backgrounds -->
+<style>
+    /* Target elements that contain inline linear-gradient styles and force a dark-friendly gradient */
+    [data-bs-theme="dark"] [style*="linear-gradient"] {
+        background: linear-gradient(135deg, rgba(15,17,26,0.72), rgba(7,16,24,0.5)) !important;
+        color: #e2e8f0 !important;
+    }
+
+    /* Specific overrides for cards/alerts with inline backgrounds */
+    [data-bs-theme="dark"] .card[style*="background"] ,
+    [data-bs-theme="dark"] .alert[style*="background"] ,
+    [data-bs-theme="dark"] .card[style*="background:"] {
+        background-color: #0f172a !important;
+        background-image: none !important;
+        color: #e2e8f0 !important;
+    }
+
+    /* Inputs / form controls in dark mode */
+    [data-bs-theme="dark"] .form-control,
+    [data-bs-theme="dark"] .form-select { background-color: #071018; color: #e2e8f0; border-color: rgba(209,213,219,0.06); }
+
+    /* Ensure small components like search group blend in */
+    [data-bs-theme="dark"] .search-container,
+    [data-bs-theme="dark"] .edit-card,
+    [data-bs-theme="dark"] .athlete-card { background-color: #071018 !important; border-color: rgba(255,255,255,0.04) !important; }
+</style>
+
+<!-- Sidebar & Messages specific dark overrides -->
+<style>
+    [data-bs-theme="dark"] #sidebar {
+        background-color: #071018 !important;
+        border-right: 1px solid rgba(255,255,255,0.04) !important;
+    }
+
+    [data-bs-theme="dark"] .nav-link-fya {
+        color: #e2e8f0 !important;
+        background: transparent !important;
+    }
+
+    [data-bs-theme="dark"] .nav-link-fya:hover {
+        background-color: rgba(154,205,50,0.06) !important;
+        color: #9ACD32 !important;
+    }
+
+    [data-bs-theme="dark"] .nav-link-fya.active {
+        background-color: rgba(154,205,50,0.12) !important;
+        color: #9ACD32 !important;
+        border-left: 3px solid #9ACD32 !important;
+    }
+
+    [data-bs-theme="dark"] .sidebar-footer { border-top-color: rgba(255,255,255,0.04); }
+
+    /* Mensagens */
+    [data-bs-theme="dark"] .chat-container { background-color: #071018 !important; }
+    [data-bs-theme="dark"] .chat-list { background-color: #071018 !important; border-right: 1px solid rgba(255,255,255,0.04) !important; }
+    [data-bs-theme="dark"] .conversation-item { color: #e2e8f0 !important; border-bottom: 1px solid rgba(255,255,255,0.04) !important; }
+    [data-bs-theme="dark"] .conversation-item:hover { background-color: rgba(154,205,50,0.06) !important; }
+    [data-bs-theme="dark"] .conversation-item.active { background-color: rgba(154,205,50,0.12) !important; border-left: 4px solid #9ACD32 !important; }
+    [data-bs-theme="dark"] .chat-window { background-color: #071018 !important; }
+    [data-bs-theme="dark"] .chat-header, [data-bs-theme="dark"] .chat-input-area { background-color: #0f172a !important; border-color: rgba(255,255,255,0.05) !important; }
+    [data-bs-theme="dark"] .message.received { background-color: #0f172a !important; color: #e2e8f0 !important; }
+    [data-bs-theme="dark"] .message.sent { background-color: #9ACD32 !important; color: #000 !important; }
+    [data-bs-theme="dark"] .online-indicator { border: 2px solid #071018 !important; }
+    [data-bs-theme="dark"] .badge.bg-danger { background-color: #b91c1c !important; }
+</style>

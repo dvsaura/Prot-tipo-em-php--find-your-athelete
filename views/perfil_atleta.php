@@ -143,7 +143,7 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        :root { --fya-primary: #070D1B; --fya-secondary: #18233F; --fya-accent: #F08000; --transition-speed: .3s; }
+        :root { --fya-primary: #070D1B; --fya-secondary: #18233F; --fya-accent: #9ACD32; --transition-speed: .3s; }
         html,body{margin:0;padding:0}
         body { font-family: 'Inter', sans-serif; background-color: #f7f9fc; }
         .profile-cover { height:220px; width:100%; background: linear-gradient(135deg, var(--fya-secondary), var(--fya-primary)); border-radius:0 0 24px 24px; }
@@ -151,14 +151,27 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
         .section-card { background-color: #fff; border:none; border-radius:16px; padding:1.25rem; box-shadow:0 6px 18px rgba(0,0,0,0.05); }
         .stat-pill { display:flex; align-items:center; justify-content:center; gap:.35rem; padding:.7rem .9rem; border-radius:999px; background:#f3f5f9; color:var(--fya-secondary); font-size:.95rem; }
         .stat-pill strong { color:var(--fya-primary); }
-        .btn-fya { background-color: var(--fya-accent); color:#fff; border:none; }
-        .btn-fya:hover { background-color:#d96d00; color:#fff; }
-        #main-content { padding-top:70px; }
+        .btn-fya { background-color: var(--fya-accent); color:#000; border:none; }
+        .btn-fya:hover { background-color:#8fb52a; color:#000; }
+        .profile-actions .btn { min-width: 140px; }
+        .card-actions { background-color: transparent; }
         @media (max-width: 576px) {
             .profile-avatar { width:104px; height:104px; }
             .profile-header { text-align:center; }
             .profile-actions { justify-content:center !important; }
         }
+        [data-bs-theme="dark"] body { background-color: #071018; color: #e2e8f0; }
+        [data-bs-theme="dark"] .profile-cover { background: linear-gradient(135deg, #0f172a, #071014); }
+        [data-bs-theme="dark"] .section-card { background-color: #111827; box-shadow: 0 6px 18px rgba(0,0,0,0.35); color: #e2e8f0; }
+        [data-bs-theme="dark"] .section-card h5, [data-bs-theme="dark"] .section-card strong, [data-bs-theme="dark"] .section-card .fw-semibold { color: #f8fafc; }
+        [data-bs-theme="dark"] .stat-pill { background: #1f2937; color: #e2e8f0; }
+        [data-bs-theme="dark"] .stat-pill strong { color: var(--fya-accent); }
+        [data-bs-theme="dark"] .btn-outline-light { color: #fff; border-color: rgba(255,255,255,0.65); }
+        [data-bs-theme="dark"] .btn-outline-dark { color: #d1d5db; border-color: rgba(209,213,219,0.35); }
+        [data-bs-theme="dark"] .card, [data-bs-theme="dark"] .card-footer, [data-bs-theme="dark"] .dropdown-menu, [data-bs-theme="dark"] .modal-content { background-color: #0f172a; }
+        [data-bs-theme="dark"] .btn-fya { background-color: #9ACD32; color: #000; }
+        [data-bs-theme="dark"] .btn-fya:hover { background-color: #8fb52a; }
+        #main-content { padding-top:70px; }
     </style>
 </head>
 <body>
@@ -242,6 +255,20 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
                                 <?php endif; ?>
                                 <?php if (!empty($perfil['curriculo_link'])): ?>
                                     <a href="<?php echo htmlspecialchars($perfil['curriculo_link']); ?>" target="_blank" class="btn btn-sm btn-outline-dark"><i class="bi bi-file-earmark-person"></i> Currículo</a>
+                                <?php endif; ?>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <?php if (!empty($perfil['instagram_link'])): ?>
+                                    <a href="<?php echo htmlspecialchars($perfil['instagram_link']); ?>" target="_blank" class="btn btn-sm btn-outline-light p-2" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($perfil['tiktok_link'])): ?>
+                                    <a href="<?php echo htmlspecialchars($perfil['tiktok_link']); ?>" target="_blank" class="btn btn-sm btn-outline-light p-2" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($perfil['youtube_link'])): ?>
+                                    <a href="<?php echo htmlspecialchars($perfil['youtube_link']); ?>" target="_blank" class="btn btn-sm btn-outline-light p-2" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($perfil['curriculo_link'])): ?>
+                                    <a href="<?php echo htmlspecialchars($perfil['curriculo_link']); ?>" target="_blank" class="btn btn-sm btn-outline-light p-2" aria-label="Currículo"><i class="bi bi-file-earmark-person"></i></a>
                                 <?php endif; ?>
                             </div>
                         </div>

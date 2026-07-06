@@ -108,7 +108,7 @@ if (!isset($_SESSION['user_id'])) {
                     <!-- Categoria: Mensagens -->
                     <h6 class="text-muted fw-bold text-uppercase small mb-3"><i class="bi bi-chat-dots me-2"></i> Mensagens</h6>
                     <div class="notif-list mb-5">
-                        <a href="mensagens.php" class="notif-item unread">
+                        <a href="" class="notif-item unread">
                             <div class="notif-dot"></div>
                             <div class="flex-grow-1">
                                 <span class="category-badge bg-msg">Mensagem</span>
@@ -117,7 +117,7 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <i class="bi bi-chevron-right text-muted"></i>
                         </a>
-                        <a href="mensagens.php" class="notif-item">
+                        <a href="" class="notif-item">
                             <div class="notif-dot" style="background-color: transparent;"></div>
                             <div class="flex-grow-1">
                                 <span class="category-badge bg-msg">Mensagem</span>
@@ -131,7 +131,7 @@ if (!isset($_SESSION['user_id'])) {
                     <!-- Categoria: Perfil -->
                     <h6 class="text-muted fw-bold text-uppercase small mb-3"><i class="bi bi-eye"></i> Visualizações de Perfil</h6>
                     <div class="notif-list mb-5">
-                        <a href="perfil_atleta.php" class="notif-item unread">
+                        <a href="" class="notif-item unread">
                             <div class="notif-dot"></div>
                             <div class="flex-grow-1">
                                 <span class="category-badge bg-view">Perfil</span>
@@ -140,7 +140,7 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <i class="bi bi-chevron-right text-muted"></i>
                         </a>
-                        <a href="perfil_atleta.php" class="notif-item">
+                        <a href="" class="notif-item">
                             <div class="notif-dot" style="background-color: transparent;"></div>
                             <div class="flex-grow-1">
                                 <span class="category-badge bg-view">Perfil</span>
@@ -154,7 +154,7 @@ if (!isset($_SESSION['user_id'])) {
                     <!-- Categoria: Candidaturas -->
                     <h6 class="text-muted fw-bold text-uppercase small mb-3"><i class="bi bi-file-earmark-check"></i> Status de Candidatura</h6>
                     <div class="notif-list mb-5">
-                        <a href="oportunidades.php" class="notif-item unread">
+                        <a href="" class="notif-item unread">
                             <div class="notif-dot"></div>
                             <div class="flex-grow-1">
                                 <span class="category-badge bg-cand">Candidatura</span>
@@ -163,7 +163,7 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <i class="bi bi-chevron-right text-muted"></i>
                         </a>
-                        <a href="oportunidades.php" class="notif-item">
+                        <a href="" class="notif-item">
                             <div class="notif-dot" style="background-color: transparent;"></div>
                             <div class="flex-grow-1">
                                 <span class="category-badge bg-cand">Candidatura</span>

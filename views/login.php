@@ -213,7 +213,7 @@
                                 <label class="form-label">Tipo de Conta</label>
                                 <select name="tipo_conta" class="form-select">
                                     <option value="atleta">Atleta</option>
-                                    <option value="avaliador">Avaliador / Clube</option>
+                                    <option value="avaliador">Avaliador</option>
                                 </select>
                             </div>
                             <div class="mb-3">

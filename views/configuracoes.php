@@ -15,6 +15,11 @@ $userId = (int)$_SESSION['user_id'];
 $stmtUser = $pdo->prepare('SELECT nome, email FROM usuarios WHERE id = ?');
 $stmtUser->execute([$userId]);
 $userData = $stmtUser->fetch();
+
+$stmtProfile = $pdo->prepare('SELECT posicao, idade, peso, altura, modalidade, cidade, estado, pais, bio, instagram_link, tiktok_link, youtube_link, curriculo_link FROM atletas_perfil WHERE id_usuario = ?');
+$stmtProfile->execute([$userId]);
+$profileData = $stmtProfile->fetch();
+
 $userName = $userData['nome'] ?? $_SESSION['user_nome'] ?? 'Usuário';
 $userEmail = $userData['email'] ?? $_SESSION['user_email'] ?? '';
 ?>
@@ -128,7 +133,50 @@ $userEmail = $userData['email'] ?? $_SESSION['user_email'] ?? '';
                 <div class="col-lg-9">
                     <div class="tab-content" id="v-pills-tabContent">
                         
-                       
+                        <!-- Aba: Dados da Conta -->
+                        <div class="tab-pane fade show active" id="pill-dados" role="tabpanel">
+                            <div class="config-card">
+                                <h5 class="fw-bold mb-4">Dados da Conta</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Nome completo</small>
+                                        <div class="fw-semibold"><?php echo htmlspecialchars($userName); ?></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">E-mail</small>
+                                        <div class="fw-semibold"><?php echo htmlspecialchars($userEmail); ?></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Modalidade</small>
+                                        <div><?php echo htmlspecialchars($profileData['modalidade'] ?? 'Não informado'); ?></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Localização</small>
+                                        <div><?php echo htmlspecialchars(trim((($profileData['cidade'] ?? '') ?: '') . (($profileData['cidade'] && ($profileData['estado'] ?? '')) ? ', ' : '') . (($profileData['estado'] ?? '') ?: '') . (($profileData['pais'] ?? '') ? ' - ' : '') . (($profileData['pais'] ?? '') ?: '')) ?: 'Não informado'); ?></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Idade</small>
+                                        <div><?php echo !empty($profileData['idade']) ? htmlspecialchars($profileData['idade'] . ' anos') : 'Não informado'; ?></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Peso</small>
+                                        <div><?php echo !empty($profileData['peso']) ? htmlspecialchars($profileData['peso'] . ' kg') : 'Não informado'; ?></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Altura</small>
+                                        <div><?php echo !empty($profileData['altura']) ? htmlspecialchars($profileData['altura'] . ' m') : 'Não informado'; ?></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <small class="text-muted">Bio</small>
+                                        <div class="text-muted small"><?php echo !empty($profileData['bio']) ? nl2br(htmlspecialchars($profileData['bio'])) : 'Nenhuma informação adicional encontrada.'; ?></div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <a href="editar_perfil.php" class="btn btn-fya px-4">Atualizar meus dados</a>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Aba: Central de Ajuda -->
                         <div class="tab-pane fade" id="pill-ajuda" role="tabpanel">
                             <div class="config-card">

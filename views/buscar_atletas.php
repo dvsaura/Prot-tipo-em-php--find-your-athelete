@@ -13,30 +13,23 @@ if (!isset($_SESSION['user_id'])) {
 
 // Parâmetros de busca
 $q = trim($_GET['q'] ?? '');
-$posicaoFilter = $_GET['posicao'] ?? '';
 $modalidadeFilter = $_GET['modalidade'] ?? '';
 $generoFilter = $_GET['genero'] ?? '';
 $faixaFilter = $_GET['faixa'] ?? '';
 $sort = $_GET['sort'] ?? 'recent';
 
 // Monta a query dinamicamente
-$sql = "SELECT u.id, u.nome, a.posicao, a.modalidade, a.idade, a.velocidade, a.tecnica, a.fisico, a.visao_jogo, a.foto_perfil, u.data_criacao " .
+$sql = "SELECT u.id, u.nome, a.modalidade, a.idade, a.velocidade, a.tecnica, a.fisico, a.visao_jogo, a.foto_perfil, u.data_criacao " .
        "FROM usuarios u LEFT JOIN atletas_perfil a ON a.id_usuario = u.id WHERE u.tipo_conta = 'atleta' AND u.id != ?";
 $params = [(int)$_SESSION['user_id']];
 
 if ($q !== '') {
-    $sql .= " AND (u.nome LIKE ? OR a.posicao LIKE ? OR a.modalidade LIKE ? OR a.cidade LIKE ? OR a.estado LIKE ? OR a.pais LIKE ?)";
+    $sql .= " AND (u.nome LIKE ? OR a.modalidade LIKE ? OR a.cidade LIKE ? OR a.estado LIKE ? OR a.pais LIKE ?)";
     $params[] = "%$q%";
     $params[] = "%$q%";
     $params[] = "%$q%";
     $params[] = "%$q%";
     $params[] = "%$q%";
-    $params[] = "%$q%";
-}
-
-if (!empty($posicaoFilter) && $posicaoFilter !== 'all') {
-    $sql .= " AND a.posicao = ?";
-    $params[] = $posicaoFilter;
 }
 
 if (!empty($modalidadeFilter) && $modalidadeFilter !== 'all') {
@@ -91,7 +84,7 @@ try {
             background-color: var(--bs-tertiary-bg);
             border-radius: 20px;
             padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(226, 31, 31, 0.05);
             margin-bottom: 2rem;
         }
 
@@ -209,9 +202,7 @@ try {
 
             <div class="alert alert-success border-0 mb-4" style="background: linear-gradient(135deg, rgba(154,205,50,0.18), rgba(255,255,255,0.04));">
                 <div class="fw-semibold">Descubra talentos com mais contexto</div>
-                <div class="small text-muted">Use os filtros por posição, modalidade e faixa etária para encontrar atletas com o perfil ideal.</div>
-            </div>
-
+                    <div class="small text-muted">Use os filtros por modalidade e faixa etária para encontrar atletas com o perfil ideal.</div>
             <!-- Área de Busca e Filtros -->
             <section class="search-container">
                 <form method="GET" action="buscar_atletas.php">
@@ -227,13 +218,6 @@ try {
                         </div>
                         <div class="col-lg-6 col-md-12 d-flex align-items-center justify-content-lg-end">
                             <div class="filter-pills d-flex flex-wrap">
-                                <select name="posicao" class="form-select form-select-sm w-auto me-2">
-                                    <option value="all">Todas posições</option>
-                                    <option value="Atacante" <?php echo ($posicaoFilter==='Atacante')? 'selected':''; ?>>Atacante</option>
-                                    <option value="Meio-Campo" <?php echo ($posicaoFilter==='Meio-Campo')? 'selected':''; ?>>Meio-Campo</option>
-                                    <option value="Zagueiro" <?php echo ($posicaoFilter==='Zagueiro')? 'selected':''; ?>>Zagueiro</option>
-                                    <option value="Goleiro" <?php echo ($posicaoFilter==='Goleiro')? 'selected':''; ?>>Goleiro</option>
-                                </select>
                                 <select name="modalidade" class="form-select form-select-sm w-auto me-2">
                                     <option value="all">Todas modalidades</option>
                                     <option value="Futebol" <?php echo ($modalidadeFilter==='Futebol')? 'selected':''; ?>>Futebol</option>

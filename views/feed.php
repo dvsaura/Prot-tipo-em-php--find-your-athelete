@@ -53,7 +53,7 @@ try {
         :root {
             --fya-primary: #070D1B;
             --fya-secondary: #18233F;
-            --fya-accent: #F08000;
+            --fya-accent: #9ACD32;
             --transition-speed: 0.3s;
         }
 
@@ -72,14 +72,29 @@ try {
 
         .btn-fya {
             background-color: var(--fya-accent);
-            color: #fff;
+            color: #000;
             font-weight: 600;
             border: none;
         }
 
         .btn-fya:hover {
-            background-color: #d96d00;
-            color: #fff;
+            background-color: #8fb52a;
+            color: #000;
+        }
+
+        .btn-action {
+            color: var(--fya-secondary);
+            transition: color var(--transition-speed);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        [data-bs-theme="dark"] .btn-action {
+            color: #d7e8b9;
+        }
+
+        [data-bs-theme="dark"] .btn-action:hover {
+            color: var(--fya-accent);
         }
 
         .featured-card, .athlete-card {
