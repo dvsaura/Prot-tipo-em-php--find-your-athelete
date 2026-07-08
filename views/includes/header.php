@@ -5,16 +5,18 @@
  * Descrição: Barra superior com alternador de tema e perfil.
  */
 ?>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
 <header class="navbar navbar-expand-lg bg-body-tertiary border-bottom px-3 shadow-sm" style="height:70px; z-index: 1040; position: fixed; top: 0; left: 0; width: 100vw;">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3">
         <a href="feed.php" class="d-flex align-items-center text-decoration-none text-body fw-semibold">
             <?php
                 // Prefer uploaded app logo if present, otherwise fallback to CDN icon
                 $appLogoPath = __DIR__ . '/../../uploads/foto.png';
-                $appLogoWeb = file_exists($appLogoPath) ? '../uploads/foto.png' : 'https://cdn-icons-png.flaticon.com/512/857/857451.png';
+                $appLogoWeb = file_exists($appLogoPath) ? '../uploads/foto.png' : 'c:\Users\djone_silvestre\Pictures\Screenshots\Captura de tela 2026-07-08 150250.png"';
             ?>
             <img src="<?php echo htmlspecialchars($appLogoWeb); ?>" alt="Find Your Athlete" style="height: 60px; width: auto; object-fit: contain;" class="me-2">
-            <span class="visually-hidden">Find Your Athlete</span>
+            <span class="ms-1 d-none d-sm-inline fw-bold text-uppercase" style="font-family: 'Poppins', 'Inter', sans-serif; font-size: 0.95rem; letter-spacing: 0.12em; color: var(--bs-body-color);">FIND YOUR ATHLETE</span>
         </a>
 
         <div class="d-flex align-items-center gap-3 ms-auto">
@@ -104,6 +106,12 @@
 
     [data-bs-theme="dark"] .btn-fya { background-color: #9ACD32; color: #000; }
     [data-bs-theme="dark"] .btn-fya:hover { background-color: #8fb52a; }
+
+    [data-bs-theme="dark"] .alert-warning {
+        background-color: rgba(255, 193, 7, 0.15) !important;
+        color: #f8fafc !important;
+        border-color: rgba(255, 193, 7, 0.3) !important;
+    }
 
     [data-bs-theme="dark"] .btn-outline-secondary,
     [data-bs-theme="dark"] .btn-outline-light,

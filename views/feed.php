@@ -140,6 +140,18 @@ try {
             color: var(--fya-accent);
         }
 
+        .badge-handebol {
+            background-color: rgba(154, 205, 50, 0.2);
+            color: #18301a;
+            border: 1px solid rgba(154, 205, 50, 0.35);
+        }
+
+        [data-bs-theme="dark"] .badge-handebol {
+            background-color: rgba(154, 205, 50, 0.24) !important;
+            color: #f8fafc !important;
+            border-color: rgba(154, 205, 50, 0.5) !important;
+        }
+
         #main-content {
             padding-top: 70px;
         }
@@ -260,7 +272,8 @@ try {
                                         </div>
                                         <div class="d-flex flex-wrap gap-2 mb-3 small text-muted">
                                             <?php if (!empty($post['modalidade'])): ?>
-                                                <span class="badge bg-dark bg-opacity-10 text-dark"><?php echo htmlspecialchars($post['modalidade']); ?></span>
+                                                <?php $modalidadePost = trim((string)($post['modalidade'])); $isHandebolPost = mb_strtolower($modalidadePost, 'UTF-8') === 'handebol'; ?>
+                                                <span class="badge <?php echo $isHandebolPost ? 'badge-handebol' : 'bg-dark bg-opacity-10 text-dark'; ?>"><?php echo htmlspecialchars($modalidadePost); ?></span>
                                             <?php endif; ?>
                                             <?php if (!empty($post['cidade']) || !empty($post['estado']) || !empty($post['pais'])): ?>
                                                 <span><?php echo htmlspecialchars(trim(($post['cidade'] ?: '') . ($post['cidade'] && $post['estado'] ? ', ' : '') . ($post['estado'] ?: '') . ($post['pais'] ? ' - ' : '') . ($post['pais'] ?: ''))); ?></span>
@@ -356,7 +369,10 @@ try {
                                         <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($atleta['nome']); ?></h5>
                                         <div class="text-muted small mb-3"><?php echo htmlspecialchars(($atleta['posicao'] ?: 'Atleta') . ' • ' . ($atleta['idade'] ? $atleta['idade'] . ' anos' : 'Idade não informada')); ?></div>
                                         <div class="d-flex flex-wrap gap-2 mb-3">
-                                            <?php if (!empty($atleta['modalidade'])): ?><span class="badge bg-dark bg-opacity-10 text-dark"><?php echo htmlspecialchars($atleta['modalidade']); ?></span><?php endif; ?>
+                                            <?php if (!empty($atleta['modalidade'])): ?>
+                                                <?php $modalidadeAtleta = trim((string)($atleta['modalidade'])); $isHandebolAtleta = mb_strtolower($modalidadeAtleta, 'UTF-8') === 'handebol'; ?>
+                                                <span class="badge <?php echo $isHandebolAtleta ? 'badge-handebol' : 'bg-dark bg-opacity-10 text-dark'; ?>"><?php echo htmlspecialchars($modalidadeAtleta); ?></span>
+                                            <?php endif; ?>
                                             <?php if (!empty($atleta['velocidade'])): ?><span class="badge bg-dark bg-opacity-10 text-dark"><?php echo htmlspecialchars($atleta['velocidade']); ?> vel.</span><?php endif; ?>
                                         </div>
                                         <div class="card-actions justify-content-between">
