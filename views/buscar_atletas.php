@@ -216,25 +216,7 @@ try {
                                 </button>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-md-12 d-flex align-items-center justify-content-lg-end">
-                            <div class="filter-pills d-flex flex-wrap">
-                                <select name="modalidade" class="form-select form-select-sm w-auto me-2">
-                                    <option value="all">Todas modalidades</option>
-                                    <option value="Futebol" <?php echo ($modalidadeFilter==='Futebol')? 'selected':''; ?>>Futebol</option>
-                                    <option value="Basquete" <?php echo ($modalidadeFilter==='Basquete')? 'selected':''; ?>>Basquete</option>
-                                    <option value="Vôlei" <?php echo ($modalidadeFilter==='Vôlei')? 'selected':''; ?>>Vôlei</option>
-                                    <option value="Handebol" <?php echo ($modalidadeFilter==='Handebol')? 'selected':''; ?>>Handebol</option>
-                                    <option value="Natação" <?php echo ($modalidadeFilter==='Natação')? 'selected':''; ?>>Natação</option>
-                                    <option value="Atletismo" <?php echo ($modalidadeFilter==='Atletismo')? 'selected':''; ?>>Atletismo</option>
-                                </select>
-                                <select name="faixa" class="form-select form-select-sm w-auto me-2">
-                                    <option value="">Faixa Etária</option>
-                                    <option value="14-16" <?php echo ($faixaFilter==='14-16')? 'selected':''; ?>>14-16 anos</option>
-                                    <option value="17-19" <?php echo ($faixaFilter==='17-19')? 'selected':''; ?>>17-19 anos</option>
-                                    <option value="20-99" <?php echo ($faixaFilter==='20-99')? 'selected':''; ?>>20+ anos</option>
-                                </select>
-                            </div>
-                        </div>
+                       
                     </div>
                 </form>
             </section>
@@ -252,10 +234,7 @@ try {
             <section>
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <p class="text-muted mb-0">Encontramos <strong><?php echo count($results); ?></strong> atletas correspondentes.</p>
-                    <select name="sort" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
-                        <option value="recent" <?php echo $sort === 'recent' ? 'selected' : ''; ?>>Mais Recentes</option>
-                        <option value="melhores" <?php echo $sort === 'melhores' ? 'selected' : ''; ?>>Melhor Avaliados</option>
-                    </select>
+                   
                 </div>
 
                 <div class="row g-4">
@@ -276,16 +255,12 @@ try {
                                     </div>
                                     <div class="athlete-info">
                                         <div class="athlete-name"><?php echo htmlspecialchars($athlete['nome']); ?></div>
-                                        <div class="text-muted small mb-2"><?php echo htmlspecialchars($athlete['posicao'] ?: 'Atleta'); ?> • <?php echo htmlspecialchars($athlete['idade'] ?: '--'); ?> anos</div>
+                                        <div class="text-muted small mb-2"> <?php echo htmlspecialchars($athlete['idade'] ?: '--'); ?> anos</div>
                                         <div class="d-flex flex-wrap gap-1 mb-2">
-                                            <?php $score = intval($athlete['velocidade'] ?? 0) + intval($athlete['tecnica'] ?? 0) + intval($athlete['visao_jogo'] ?? 0); ?>
-                                            <span class="badge bg-success bg-opacity-10 text-success">Score <?php echo $score; ?></span>
+
+                                            
                                         </div>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            <span class="metric-badge">VEL <?php echo intval($athlete['velocidade']); ?></span>
-                                            <span class="metric-badge">TEC <?php echo intval($athlete['tecnica']); ?></span>
-                                            <span class="metric-badge">VIS <?php echo intval($athlete['visao_jogo']); ?></span>
-                                        </div>
+                                        
                                     </div>
                                     <div class="card-actions d-flex justify-content-around p-3 border-top">
                                         <a href="mensagens.php?contact=<?php echo intval($athlete['id']); ?>" class="btn-action text-muted"><i class="bi bi-chat-left-text"></i></a>

@@ -16,7 +16,7 @@ $stmtUser = $pdo->prepare('SELECT nome, email FROM usuarios WHERE id = ?');
 $stmtUser->execute([$userId]);
 $userData = $stmtUser->fetch();
 
-$stmtProfile = $pdo->prepare('SELECT posicao, idade, peso, altura, modalidade, cidade, estado, pais, bio, instagram_link, tiktok_link, youtube_link, curriculo_link FROM atletas_perfil WHERE id_usuario = ?');
+$stmtProfile = $pdo->prepare('SELECT idade, peso, altura, modalidade, cidade, estado, pais, bio, instagram_link, tiktok_link, youtube_link, curriculo_link FROM atletas_perfil WHERE id_usuario = ?');
 $stmtProfile->execute([$userId]);
 $profileData = $stmtProfile->fetch();
 
