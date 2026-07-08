@@ -1,8 +1,6 @@
--- =============================================================================
 -- BANCO DE DADOS: Find Your Athlete (FYA)
--- Versão: 1.0
 -- Descrição: Sistema de conexão entre atletas de base e avaliadores/clubes.
--- =============================================================================
+
 
 CREATE DATABASE IF NOT EXISTS findmyathlete_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE findmyathlete_db;
@@ -30,7 +28,6 @@ CREATE TABLE IF NOT EXISTS usuarios (
 CREATE TABLE IF NOT EXISTS atletas_perfil (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
-    posicao VARCHAR(50),
     idade INT,
     peso DECIMAL(5,2),
     altura DECIMAL(3,2),

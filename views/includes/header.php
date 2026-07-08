@@ -11,7 +11,8 @@
             <?php
                 // Prefer uploaded app logo if present, otherwise fallback to CDN icon
                 $appLogoPath = __DIR__ . '/../../uploads/foto.png';
-                $appLogoWeb = file_exists($appLogoPath) ? '../uploads/foto.png' : 'https://cdn-icons-png.flaticon.com/512/857/857451.png';
+                
+                $appLogoWeb = file_exists($appLogoPath) ? '../uploads/foto.png' : 'https://drive.google.com/drive/home';
             ?>
             <img src="<?php echo htmlspecialchars($appLogoWeb); ?>" alt="Find Your Athlete" style="height: 60px; width: auto; object-fit: contain;" class="me-2">
             <span class="visually-hidden">Find Your Athlete</span>
