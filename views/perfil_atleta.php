@@ -186,7 +186,7 @@ if (!empty($_GET['msg'])) { $alertMessage = htmlspecialchars($_GET['msg']); }
 
             <section class="profile-header mb-4 position-relative">
                 <div class="profile-cover"></div>
-                <div class="position-absolute start-0 end-0" style="top:90px;">
+                <div class="position-absolute start-0 end-0" style="top:5px;">
                     <div class="container-fluid px-3 px-md-4">
                         <div class="row align-items-end g-3">
                             <div class="col-12 col-md-4 text-center text-md-start">

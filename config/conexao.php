@@ -9,7 +9,7 @@ require_once __DIR__ . '/upload_helper.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
-}
+} 
 
 // Configurações do Banco de Dados
 $host = 'tini.click';

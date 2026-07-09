@@ -6,7 +6,9 @@
  */
 
 require_once '../config/conexao.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Captura a ação via GET
 $action = $_GET['action'] ?? '';
@@ -28,7 +30,8 @@ if ($action === 'register') {
 
         // Validação básica
         if (empty($nome) || empty($email) || empty($senha)) {
-            die("Erro: Por favor, preencha todos os campos obrigatórios.");
+            header("Location: ../views/login.php?erro=" . urlencode("E-mail ou senha incorretos."));
+            exit();
         }
 
         try {
@@ -182,8 +185,9 @@ if ($action === 'login') {
                 // Redireciona para o feed inicial
                 header("Location: ../views/feed.php");
                 exit();
-            } else {
-                die("Erro: E-mail ou senha incorretos.");
+            }  else {
+                header("Location: ../views/login.php?erro=" . urlencode("E-mail ou senha incorretos."));
+                exit();
             }
 
         } catch (PDOException $e) {

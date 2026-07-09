@@ -198,11 +198,11 @@ try {
 
         <main class="container-fluid p-4">
             
-            <h3 class="fw-bold mb-4">Busca Inteligente <span class="text-muted fs-6 fw-normal">/ Filtre os melhores talentos</span></h3>
+            <h3 class="fw-bold mb-4">Busca Inteligente <span class="text-muted fs-6 fw-normal"></span></h3>
 
             <div class="alert alert-success border-0 mb-4" style="background: linear-gradient(135deg, rgba(154,205,50,0.18), rgba(255,255,255,0.04));">
                 <div class="fw-semibold">Descubra talentos com mais contexto</div>
-                    <div class="small text-muted">Use os filtros por modalidade e faixa etária para encontrar atletas com o perfil ideal.</div>
+                    <div class="small text-muted">Use para buscar por modalidade ou nome!</div>
             <!-- Área de Busca e Filtros -->
             <section class="search-container">
                 <form method="GET" action="buscar_atletas.php">

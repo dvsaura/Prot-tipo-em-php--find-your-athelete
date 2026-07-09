@@ -178,6 +178,13 @@
                 <div class="tab-content" id="authTabsContent">
                     <!-- Formulário de Login -->
                     <div class="tab-pane fade show active" id="pills-login" role="tabpanel">
+
+                        <?php if (isset($_GET['erro'])): ?>
+                            <div class="alert alert-danger">
+                                <?= htmlspecialchars($_GET['erro']) ?>
+                            </div>
+                        <?php endif; ?>
+
                         <form action="../controllers/auth_controller.php?action=login" method="POST">
                             <div class="mb-3">
                                 <label class="form-label">E-mail</label>
