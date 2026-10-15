@@ -12,10 +12,10 @@ if (session_status() === PHP_SESSION_NONE) {
 } 
 
 // Configurações do Banco de Dados
-$host = 'tini.click';
+$host = 'fya-mysql';
 $db   = 'findmyathlete_db';
 $user = 'findmyathlete_db';
-$pass = '54c98b46e8178f4475de2c4334a72b5!';
+$pass = 'senha123';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";

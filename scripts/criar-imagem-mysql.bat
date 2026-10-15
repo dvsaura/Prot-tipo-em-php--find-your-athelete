@@ -1,0 +1,1 @@
+docker build -t fya-mysql-image -f ..\Dockerfile.mysql ..

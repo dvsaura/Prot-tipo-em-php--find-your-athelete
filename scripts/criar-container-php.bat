@@ -1,0 +1,1 @@
+docker run -d --name fya-php --network rede-fya -p 8080:80 fya-image

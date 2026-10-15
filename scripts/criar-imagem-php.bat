@@ -1,0 +1,1 @@
+docker build -t fya-image ..
